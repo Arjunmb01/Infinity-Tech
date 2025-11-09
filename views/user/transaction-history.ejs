@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet - Transaction History</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Custom styles to match wallet.ejs */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .transaction-card {
+            transition: all 0.3s ease;
+        }
+
+        .transaction-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .amount-credit {
+            background: linear-gradient(90deg, #059669, #10B981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .amount-debit {
+            background: linear-gradient(90deg, #DC2626, #EF4444);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex">
+    <!-- Sidebar (Reused from wallet.ejs) -->
+    <%- include('../partials/profileSideBar')%>
+
+    <!-- Main Content -->
+    <main class="flex-1 container mx-auto px-4 py-8 space-y-8 mt-16 mb-16">
+        <!-- Breadcrumbs -->
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
+            <div class="text-sm breadcrumbs mb-4 lg:mb-0">
+                <ul class="flex flex-wrap items-center text-white">
+                    <li><a href="/profile" class="hover:text-gray-300">Home</a></li>
+                    <li><i class="fas fa-chevron-right mx-2 text-gray-400 text-xs"></i></li>
+                    <li><a href="/wallet" class="hover:text-gray-300">Wallet</a></li>
+                    <li><i class="fas fa-chevron-right mx-2 text-gray-400 text-xs"></i></li>
+                    <li><span class="text-red-300">Transaction History</span></li>
+                </ul>
+            </div>
+            <div class="text-white bg-white/10 glassmorphism px-4 py-2 rounded-lg shadow-sm">
+                Welcome! <span class="text-red-300 font-semibold"><%= user.fname %> <%= user.lname %></span>
+            </div>
+        </div>
+
+        <!-- Transaction History Section -->
+        <div class="bg-white rounded-3xl shadow-xl p-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">Transaction History</h3>
+                <div class="flex gap-3 w-full md:w-auto">
+                    <div class="relative flex-grow md:flex-grow-0">
+                        <input type="text" id="searchTransaction" placeholder="Search transactions..." 
+                               class="w-full px-4 py-3 text-sm bg-gray-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 border border-gray-200 shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                    <button id="filterBtn" class="px-4 py-3 text-sm bg-white rounded-xl hover:bg-gray-50 transition-all duration-300 flex items-center gap-2 border border-gray-200 shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                        </svg>
+                        <span class="hidden md:inline">Filter</span>
+                    </button>
+                    <button id="exportBtn" class="px-4 py-3 text-sm bg-white rounded-xl hover:bg-gray-50 transition-all duration-300 flex items-center gap-2 border border-gray-200 shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        <span class="hidden md:inline">Export</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Transactions List -->
+            <div class="space-y-4 max-h-[600px] overflow-y-auto custom-scrollbar">
+                <% if (wallet && wallet.transactions && wallet.transactions.length > 0) { %>
+                    <% wallet.transactions.forEach((transaction, index) => { %>
+                        <div class="transaction-card flex items-center justify-between p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-all duration-300">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 rounded-xl flex items-center justify-center <%= transaction.type === 'credit' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600' %>">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                              d="<%= transaction.type === 'credit' ? 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4' : 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12' %>" />
+                                    </svg>
+                                </div>
+                                <div class="flex-grow min-w-0">
+                                    <p class="font-semibold text-gray-900 truncate"><%= transaction.description || 'Unnamed Transaction' %></p>
+                                    <div class="flex items-center gap-2 text-sm text-gray-500">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        <span><%= new Date(transaction.date).toLocaleDateString() %></span>
+                                        <span>•</span>
+                                        <span><%= transaction.time ? new Date(transaction.time).toLocaleTimeString() : 'N/A' %></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-right ml-4">
+                                <p class="text-lg font-bold whitespace-nowrap <%= transaction.type === 'credit' ? 'amount-credit' : 'amount-debit' %>">
+                                    <%= transaction.type === 'credit' ? '+' : '-' %>₹<%= transaction.amount.toLocaleString() %>
+                                </p>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= transaction.status === 'Completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' %>">
+                                    <%= transaction.status || 'Completed' %>
+                                </span>
+                            </div>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <div class="text-center py-16">
+                        <div class="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900">No transactions yet</h3>
+                        <p class="text-gray-500 mt-2">Your transaction history will appear here</p>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- Footer -->
+            <div class="mt-8 flex justify-between items-center border-t pt-6">
+                <p class="text-sm text-gray-500">
+                    Showing <span id="transactionCount" class="font-medium">0</span> transactions
+                </p>
+                <a href="/wallet" class="group text-red-600 hover:text-red-700 font-medium text-sm flex items-center gap-2">
+                    Back to Wallet
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Animate elements on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            gsap.from(".transaction-card", {
+                y: 20,
+                opacity: 0,
+                duration: 0.5,
+                stagger: 0.1,
+                ease: "power2.out"
+            });
+
+            // Update transaction count
+            const transactionCards = document.querySelectorAll('.transaction-card');
+            document.getElementById('transactionCount').textContent = transactionCards.length;
+
+            // Search functionality
+            const searchInput = document.getElementById('searchTransaction');
+            searchInput.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                transactionCards.forEach(card => {
+                    const description = card.querySelector('.font-semibold').textContent.toLowerCase();
+                    const amount = card.querySelector('.whitespace-nowrap').textContent;
+                    card.style.display = (description.includes(searchTerm) || amount.includes(searchTerm)) ? 'flex' : 'none';
+                });
+                updateTransactionCount();
+            });
+
+            function updateTransactionCount() {
+                const visibleTransactions = document.querySelectorAll('.transaction-card[style*="flex"]').length;
+                document.getElementById('transactionCount').textContent = visibleTransactions;
+            }
+
+            // Filter and Export button placeholders
+            document.getElementById('filterBtn').addEventListener('click', () => alert('Filter functionality coming soon!'));
+            document.getElementById('exportBtn').addEventListener('click', () => alert('Export functionality coming soon!'));
+        });
+    </script>
+</body>
+</html>

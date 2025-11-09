@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify OTP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gradient-to-r from-purple-500 to-blue-500">
+    <div class="bg-white p-8 rounded-lg shadow-lg max-w-sm w-full">
+        <h2 class="text-2xl font-bold text-gray-800 text-center">Verify OTP</h2>
+        <p class="text-gray-600 text-center mb-4">Please enter the OTP sent to your email</p>
+        <form id="verifyOTPForm" class="space-y-4">
+            <input type="hidden" id="email" value="<%= email %>">
+            <div>
+                <label for="otp" class="block text-gray-700 font-medium">OTP:</label>
+                <input type="text" id="otp" name="otp" required class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+            </div>
+            <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition">Verify OTP</button>
+        </form>
+    </div>
+    
+    <script>
+        document.getElementById('verifyOTPForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const otp = document.getElementById('otp').value;
+            
+            try {
+                const response = await fetch('/forgotOtp', { // Update to '/verifyOTP' if that's your route
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, otp })
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    window.location.href = `/resetPassword?email=${encodeURIComponent(email)}`;
+                } else {
+                    alert(data.message || 'Invalid OTP');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>

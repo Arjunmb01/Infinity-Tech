@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= editing ? 'Edit Offer' : 'Add Offer' %></title>
+    <%- include('./partials/adminHeader.ejs') %>
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .hidden { display: none; }
+        .error-border { border-color: #ef4444 !important; }
+    </style>
+</head>
+<body class="gradient-bg animate-gradient min-h-screen flex">
+    <%- include('./partials/adminSidebar.ejs') %>
+
+    <div class="flex-1 flex flex-col overflow-hidden" style="margin-left: var(--sidebar-width, 16rem);">
+        <main class="flex-1 overflow-x-hidden overflow-y-auto p-6">
+            <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+                <!-- Header Section -->
+                <div class="flex justify-between items-center mb-8 animate-fade-in-up">
+                    <h1 class="text-3xl font-extrabold bg-gradient-to-r from-[#d4af37] to-[#f9e076] bg-clip-text text-transparent tracking-tight">
+                        <%= editing ? 'Edit Offer' : 'Add Offer' %>
+                    </h1>
+                    <a href="/admin/offers" 
+                       class="inline-flex items-center px-4 py-2 rounded-lg bg-gradient-to-r from-[#d4af37] to-[#f9e076] text-white transition-all duration-300 transform hover:scale-105 group glass-effect-dark">
+                        <svg class="w-5 h-5 mr-2 transition-transform duration-300 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path>
+                        </svg>
+                        Back to Offers
+                    </a>
+                </div>
+
+                <!-- Form Section -->
+                <div class="glass-effect-dark rounded-xl p-8 shadow-xl border border-white/10 animate-fade-in-up animation-delay-400">
+                    <form method="POST" 
+                          action="<%= editing ? '/admin/offers/edit/' + offer._id : '/admin/offers/add' %>"
+                          class="space-y-6" id="offerForm">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-[var(--text-color)] mb-2">Offer Name</label>
+                                <input type="text" name="name" 
+                                       value="<%= editing ? offer.name : (oldInput.name || '') %>"
+                                       class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] placeholder-gray-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300 hover:bg-[var(--secondary-bg)]"
+                                       placeholder="Enter offer name">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-[var(--text-color)] mb-2">Description</label>
+                                <input type="text" name="description" 
+                                       value="<%= editing ? offer.description : (oldInput.description || '') %>"
+                                       class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] placeholder-gray-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300 hover:bg-[var(--secondary-bg)]"
+                                       placeholder="Enter description">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-[var(--text-color)] mb-2">Discount Type</label>
+                                <select name="discountType" 
+                                        class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300 hover:bg-[var(--secondary-bg)]">
+                                    <option value="percentage" <%= editing && offer.discountType === 'percentage' ? 'selected' : '' %>>Percentage</option>
+                                    <option value="fixed" <%= editing && offer.discountType === 'fixed' ? 'selected' : '' %>>Fixed</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-[var(--text-color)] mb-2">Discount Value</label>
+                                <input type="number" name="discountValue" 
+                                       value="<%= editing ? offer.discountValue : (oldInput.discountValue || '') %>"
+                                       class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] placeholder-gray-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300 hover:bg-[var(--secondary-bg)]"
+                                       placeholder="Enter discount value">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-[var(--text-color)] mb-2">Max Discount (optional)</label>
+                                <input type="number" name="maxDiscount" 
+                                       value="<%= editing && offer.maxDiscount ? offer.maxDiscount : (oldInput.maxDiscount || '') %>"
+                                       class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] placeholder-gray-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300 hover:bg-[var(--secondary-bg)]"
+                                       placeholder="Enter max discount">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-[var(--text-color)] mb-2">Minimum Amount</label>
+                                <input type="number" name="minimumAmount" 
+                                       value="<%= editing ? offer.minimumAmount : (oldInput.minimumAmount || '') %>"
+                                       class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] placeholder-gray-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300 hover:bg-[var(--secondary-bg)]"
+                                       placeholder="Enter minimum amount">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-[var(--text-color)] mb-2">Start Date</label>
+                                <input type="date" name="startDate" 
+                                       value="<%= editing ? offer.startDate.toISOString().split('T')[0] : (oldInput.startDate || new Date().toISOString().split('T')[0]) %>"
+                                       class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300 hover:bg-[var(--secondary-bg)]">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-[var(--text-color)] mb-2">End Date</label>
+                                <input type="date" name="endDate" 
+                                       value="<%= editing ? offer.endDate.toISOString().split('T')[0] : (oldInput.endDate || '') %>"
+                                       class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300 hover:bg-[var(--secondary-bg)]">
+                            </div>
+
+                            <% if (!editing) { %>
+                                <div>
+                                    <label class="block text-sm font-medium text-[var(--text-color)] mb-2">Offer Type</label>
+                                    <select name="offerType" id="offerType" 
+                                            class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300 hover:bg-[var(--secondary-bg)]">
+                                        <option value="">Select offer type</option>
+                                        <option value="product">Product</option>
+                                        <option value="category">Category</option>
+                                    </select>
+                                </div>
+                            <% } %>
+
+                            <div id="productSection" class="<%= !editing ? 'hidden' : (offer.Product && offer.Product.length > 0 ? '' : 'hidden') %>">
+                                <label class="block text-sm font-medium text-[var(--text-color)] mb-2">Products</label>
+                                <% if (products && products.length > 0) { %>
+                                    <select name="product" multiple 
+                                            class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300 hover:bg-[var(--secondary-bg)]">
+                                        <% products.forEach(prod => { %>
+                                            <option value="<%= prod._id %>" <%= editing && offer.Product && offer.Product.some(p => p._id.toString() === prod._id.toString()) ? 'selected' : '' %>>
+                                                <%= prod.name %>
+                                            </option>
+                                        <% }) %>
+                                    </select>
+                                <% } else { %>
+                                    <p class="text-red-300">No products found in the database.</p>
+                                <% } %>
+                            </div>
+
+                            <div id="categorySection" class="<%= !editing ? 'hidden' : (offer.Categories && offer.Categories.length > 0 ? '' : 'hidden') %>">
+                                <label class="block text-sm font-medium text-[var(--text-color)] mb-2">Category</label>
+                                <% if (categories && categories.length > 0) { %>
+                                    <select name="category" 
+                                            class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300 hover:bg-[var(--secondary-bg)]">
+                                        <option value="">Select a category</option>
+                                        <% categories.forEach(cat => { %>
+                                            <option value="<%= cat._id %>" <%= editing && offer.Categories && offer.Categories.some(c => c._id.toString() === cat._id.toString()) ? 'selected' : '' %>>
+                                                <%= cat.name %>
+                                            </option>
+                                        <% }) %>
+                                    </select>
+                                <% } else { %>
+                                    <p class="text-red-300">No categories found in the database.</p>
+                                <% } %>
+                            </div>
+
+                            <% if (editing) { %>
+                                <div>
+                                    <label class="block text-sm font-medium text-[var(--text-color)] mb-2">Active</label>
+                                    <input type="checkbox" name="isActive" <%= offer.isActive ? 'checked' : '' %>
+                                           class="h-5 w-5 text-[#d4af37] bg-[var(--content-bg)] border border-white/10 rounded focus:ring-[#d4af37] focus:ring-2">
+                                </div>
+                            <% } %>
+                        </div>
+                        <div class="flex justify-end mt-6">
+                            <button type="submit" 
+                                    class="inline-flex items-center px-6 py-3 rounded-lg bg-gradient-to-r from-[#d4af37] to-[#f9e076] text-white font-medium transition-all duration-300 transform hover:scale-105 group">
+                                <svg class="w-5 h-5 mr-2 transition-transform duration-300 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Save Offer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <%- include('./partials/adminFooter.ejs') %>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const offerTypeSelect = document.getElementById('offerType');
+            const productSection = document.getElementById('productSection');
+            const categorySection = document.getElementById('categorySection');
+            const form = document.getElementById('offerForm');
+
+            // Handle offer type selection
+            if (offerTypeSelect) {
+                offerTypeSelect.addEventListener('change', () => {
+                    const value = offerTypeSelect.value;
+                    productSection.classList.add('hidden');
+                    categorySection.classList.add('hidden');
+                    if (value === 'product') productSection.classList.remove('hidden');
+                    else if (value === 'category') categorySection.classList.remove('hidden');
+                });
+            }
+
+            // Show initial error message if present
+            <% if (errorMessage) { %>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: '<%= errorMessage %>',
+                    confirmButtonColor: '#d4af37',
+                    background: '#1a1a1a',
+                    color: '#ffffff'
+                });
+            <% } %>
+
+            // Frontend validation function
+            function validateForm() {
+                let isValid = true;
+                const errors = [];
+                const inputs = form.querySelectorAll('input, select');
+                
+                inputs.forEach(input => input.classList.remove('error-border'));
+
+                const requiredFields = {
+                    name: 'Offer Name',
+                    discountType: 'Discount Type',
+                    discountValue: 'Discount Value',
+                    startDate: 'Start Date',
+                    endDate: 'End Date'
+                };
+
+                if (!<%= editing ? 'true' : 'false' %>) {
+                    requiredFields.offerType = 'Offer Type';
+                }
+
+                for (const [fieldName, fieldLabel] of Object.entries(requiredFields)) {
+                    const input = form.querySelector(`[name="${fieldName}"]`);
+                    if (!input.value.trim()) {
+                        errors.push(`${fieldLabel} is required`);
+                        input.classList.add('error-border');
+                        isValid = false;
+                    }
+                }
+
+                const name = form.querySelector('[name="name"]').value.trim();
+                if (name && (name.length < 3 || name.length > 30)) {
+                    errors.push('Offer Name must be between 3 and 30 characters');
+                    form.querySelector('[name="name"]').classList.add('error-border');
+                    isValid = false;
+                }
+
+                const discountValue = parseFloat(form.querySelector('[name="discountValue"]').value);
+                if (!isNaN(discountValue)) {
+                    if (discountValue < 0) {
+                        errors.push('Discount Value must be a positive number');
+                        form.querySelector('[name="discountValue"]').classList.add('error-border');
+                        isValid = false;
+                    }
+                    if (form.querySelector('[name="discountType"]').value === 'percentage' && discountValue > 100) {
+                        errors.push('Percentage discount cannot exceed 100');
+                        form.querySelector('[name="discountValue"]').classList.add('error-border');
+                        isValid = false;
+                    }
+                }
+
+                const minimumAmount = parseFloat(form.querySelector('[name="minimumAmount"]').value || 0);
+                if (!isNaN(minimumAmount) && minimumAmount < 0) {
+                    errors.push('Minimum Amount must be a positive number');
+                    form.querySelector('[name="minimumAmount"]').classList.add('error-border');
+                    isValid = false;
+                }
+
+                const startDate = new Date(form.querySelector('[name="startDate"]').value);
+                const endDate = new Date(form.querySelector('[name="endDate"]').value);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                if (startDate < today) {
+                    errors.push('Start Date cannot be in the past');
+                    form.querySelector('[name="startDate"]').classList.add('error-border');
+                    isValid = false;
+                }
+                if (endDate <= startDate) {
+                    errors.push('End Date must be after Start Date');
+                    form.querySelector('[name="endDate"]').classList.add('error-border');
+                    isValid = false;
+                }
+
+                if (!<%= editing ? 'true' : 'false' %>) {
+                    const offerType = form.querySelector('[name="offerType"]').value;
+                    if (offerType === 'product') {
+                        const productSelect = form.querySelector('[name="product"]');
+                        if (!productSelect.selectedOptions.length) {
+                            errors.push('Please select at least one product');
+                            productSelect.classList.add('error-border');
+                            isValid = false;
+                        }
+                    } else if (offerType === 'category') {
+                        const categorySelect = form.querySelector('[name="category"]');
+                        if (!categorySelect.value) {
+                            errors.push('Please select a category');
+                            categorySelect.classList.add('error-border');
+                            isValid = false;
+                        }
+                    }
+                }
+
+                if (!isValid) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Validation Error',
+                        html: errors.join('<br>'),
+                        confirmButtonColor: '#d4af37',
+                        background: '#1a1a1a',
+                        color: '#ffffff'
+                    });
+                }
+
+                return isValid;
+            }
+
+            // AJAX form submission with explicit URL-encoded data
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                if (!validateForm()) return;
+
+                // Serialize form data manually
+                const formData = new URLSearchParams();
+                const inputs = form.querySelectorAll('input, select');
+                inputs.forEach(input => {
+                    if (input.name) {
+                        if (input.type === 'checkbox') {
+                            formData.append(input.name, input.checked ? 'on' : 'off');
+                        } else if (input.multiple) {
+                            Array.from(input.selectedOptions).forEach(option => {
+                                formData.append(input.name, option.value);
+                            });
+                        } else {
+                            formData.append(input.name, input.value);
+                        }
+                    }
+                });
+
+                console.log('Form Data:', Object.fromEntries(formData)); // Debug log
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'Accept': 'application/json'
+                        }
+                    });
+                    const data = await response.json();
+
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: data.message,
+                            confirmButtonColor: '#d4af37',
+                            background: '#1a1a1a',
+                            color: '#ffffff'
+                        }).then(() => {
+                            window.location.href = data.redirect || '/admin/offers';
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message,
+                            confirmButtonColor: '#d4af37',
+                            background: '#1a1a1a',
+                            color: '#ffffff'
+                        });
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'An unexpected error occurred',
+                        confirmButtonColor: '#d4af37',
+                        background: '#1a1a1a',
+                        color: '#ffffff'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,275 @@
+<%- include('./partials/adminHeader.ejs') %>
+
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="flex min-h-screen gradient-bg animate-gradient">
+  <%- include('./partials/adminSidebar.ejs') %>
+
+  <main class="flex-1 p-6" style="margin-left: var(--sidebar-width, 16rem);">
+    <!-- Breadcrumbs -->
+    <nav class="mb-6 animate-fade-in-up">
+      <ol class="flex items-center space-x-2 text-sm text-[var(--text-color)]">
+        <li>
+          <a href="/admin/dashboard" class="hover:text-[#d4af37] transition-colors duration-300">Dashboard</a>
+        </li>
+        <li><span class="text-gray-500">/</span></li>
+        <li class="text-[#d4af37]">Coupons Management</li>
+      </ol>
+    </nav>
+
+    <!-- Header Section -->
+    <header class="flex items-center justify-between mb-8 animate-fade-in-up">
+      <h1 class="text-3xl font-extrabold bg-gradient-to-r from-[#d4af37] to-[#f9e076] bg-clip-text text-transparent tracking-tight">Coupons Management</h1>
+      <a href="/admin/add-coupon" 
+         class="add-coupon-btn glass-effect bg-gradient-to-r from-[#d4af37] to-[#f9e076] text-white px-4 py-2 rounded-lg hover:scale-105 transition-all duration-300 group">
+        <i class="fas fa-plus mr-2 transition-transform duration-300 group-hover:scale-110"></i> Add New Coupon
+      </a>
+    </header>
+
+    <!-- Search Section -->
+    <section class="mb-8 animate-fade-in-up animation-delay-200">
+      <form action="/admin/coupons" method="GET" id="searchForm">
+        <div class="search-container glass-effect-dark p-4 rounded-xl shadow-lg flex flex-col sm:flex-row items-center gap-4">
+          <input 
+            type="text" 
+            name="search" 
+            placeholder="Search coupons..." 
+            class="search-input flex-1 bg-[var(--content-bg)] text-[var(--text-color)] border border-white/10 rounded-lg px-4 py-2 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300"
+            value="<%= search %>"
+          >
+          <select name="status" 
+                  class="search-select bg-[var(--content-bg)] text-[var(--text-color)] border border-white/10 rounded-lg px-4 py-2 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300">
+            <option value="">All Status</option>
+            <option value="active" <%= status === 'active' ? 'selected' : '' %>>Active</option>
+            <option value="inactive" <%= status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+          </select>
+          <button type="submit" 
+                  class="search-button glass-effect bg-gradient-to-r from-[#d4af37] to-[#f9e076] text-white px-4 py-2 rounded-lg hover:scale-105 transition-all duration-300">
+            <i class="fas fa-search mr-2"></i> Search
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Flash Messages -->
+    <% if (success && success.length > 0) { %>
+      <div class="glass-effect-dark bg-green-500/20 text-green-400 p-4 rounded mb-4 animate-fade-in-up animation-delay-400"><%= success %></div>
+    <% } %>
+    <% if (error && error.length > 0) { %>
+      <div class="glass-effect-dark bg-red-500/20 text-red-400 p-4 rounded mb-4 animate-fade-in-up animation-delay-400"><%= error %></div>
+    <% } %>
+
+    <!-- Coupons Table -->
+    <section class="table-container glass-effect-dark rounded-xl shadow-xl animate-fade-in-up animation-delay-400">
+      <% if (coupons.length > 0) { %>
+        <div class="overflow-x-auto">
+          <table class="w-full text-[var(--text-color)]">
+            <thead class="bg-[var(--content-bg)] border-b border-white/10">
+              <tr>
+                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-400 uppercase">Sl No</th>
+                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-400 uppercase">Name</th>
+                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-400 uppercase">Code</th>
+                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-400 uppercase">Offer Type</th>
+                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-400 uppercase">Value</th>
+                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-400 uppercase">Min Price</th>
+                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-400 uppercase">Created On</th>
+                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-400 uppercase">Expires On</th>
+                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-400 uppercase">Usage Limit</th>
+                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-400 uppercase">Per User</th>
+                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-400 uppercase">Status</th>
+                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-400 uppercase">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-white/10">
+              <% coupons.forEach((coupon, index) => { %>
+                <tr class="table-row hover:bg-[var(--secondary-bg)] transition-all duration-300">
+                  <td class="px-6 py-4"><%= (currentPage - 1) * 10 + index + 1 %></td>
+                  <td class="px-6 py-4"><%= coupon.name %></td>
+                  <td class="px-6 py-4"><%= coupon.code %></td>
+                  <td class="px-6 py-4"><%= coupon.offerType %></td>
+                  <td class="px-6 py-4"><%= coupon.offerValue %><%= coupon.offerType === 'percentage' ? '%' : '₹' %></td>
+                  <td class="px-6 py-4">₹<%= coupon.minimumPrice %></td>
+                  <td class="px-6 py-4"><%= new Date(coupon.createdOn).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %></td>
+                  <td class="px-6 py-4"><%= new Date(coupon.expiredOn).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %></td>
+                  <td class="px-6 py-4"><%= coupon.usageLimit || 'Unlimited' %></td>
+                  <td class="px-6 py-4"><%= coupon.usagePerUserLimit %></td>
+                  <td class="px-6 py-4">
+                    <span class="status-badge px-2 py-1 rounded-full text-xs font-medium <%= coupon.isActive ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400' %>">
+                      <%= coupon.isActive ? 'Active' : 'Inactive' %>
+                    </span>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="flex space-x-2">
+                      <a href="/admin/editCoupon/<%= coupon._id %>" 
+                         class="action-icon text-[#d4af37] hover:text-[#f9e076] p-2 rounded-lg hover:bg-[#d4af37]/20 transition-all duration-300">
+                        <i class="fas fa-edit"></i>
+                      </a>
+                      <button data-id="<%= coupon._id %>" 
+                              class="action-icon delete-btn text-red-400 hover:text-red-300 p-2 rounded-lg hover:bg-red-500/20 transition-all duration-300">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="p-4 flex justify-between items-center text-[var(--text-color)]">
+          <p>Showing <%= (currentPage - 1) * 10 + 1 %> to <%= Math.min(currentPage * 10, totalCoupons) %> of <%= totalCoupons %> coupons</p>
+          <div class="flex space-x-2">
+            <a href="/admin/coupons?page=<%= currentPage > 1 ? currentPage - 1 : 1 %>&search=<%= search %>&status=<%= status %>" 
+               class="px-3 py-1 rounded-lg bg-[var(--content-bg)] <%= currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#d4af37] hover:text-white' %> transition-all duration-300">
+              Previous
+            </a>
+            <% for (let i = 1; i <= totalPages; i++) { %>
+              <a href="/admin/coupons?page=<%= i %>&search=<%= search %>&status=<%= status %>" 
+                 class="px-3 py-1 rounded-lg <%= currentPage === i ? 'bg-[#d4af37] text-white' : 'bg-[var(--content-bg)] hover:bg-[#d4af37] hover:text-white' %> transition-all duration-300">
+                <%= i %>
+              </a>
+            <% } %>
+            <a href="/admin/coupons?page=<%= currentPage < totalPages ? currentPage + 1 : totalPages %>&search=<%= search %>&status=<%= status %>" 
+               class="px-3 py-1 rounded-lg bg-[var(--content-bg)] <%= currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#d4af37] hover:text-white' %> transition-all duration-300">
+              Next
+            </a>
+          </div>
+        </div>
+      <% } else { %>
+        <div class="flex flex-col items-center justify-center py-12 text-center">
+          <i class="fas fa-ticket-alt text-4xl text-[#d4af37] mb-4"></i>
+          <h3 class="text-xl font-semibold text-[var(--text-color)]">No Coupons Found</h3>
+          <p class="text-gray-400 mt-2">Start by adding your first coupon.</p>
+          <a href="/admin/add-coupon" 
+             class="add-coupon-btn glass-effect bg-gradient-to-r from-[#d4af37] to-[#f9e076] text-white px-4 py-2 rounded-lg hover:scale-105 transition-all duration-300 mt-4">
+            <i class="fas fa-plus mr-2"></i> Create Coupon
+          </a>
+        </div>
+      <% } %>
+    </section>
+  </main>
+</div>
+
+<%- include('./partials/adminFooter.ejs') %>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Determine the base URL dynamically to avoid hardcoding protocol
+    const baseUrl = window.location.protocol + '//' + window.location.host;
+
+    // Delete functionality with SweetAlert2
+    const deleteButtons = document.querySelectorAll('.delete-btn');
+    deleteButtons.forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const couponId = btn.getAttribute('data-id');
+
+        const result = await Swal.fire({
+          title: 'Are you sure?',
+          text: 'This action cannot be undone.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#d4af37',
+          cancelButtonColor: '#ef4444',
+          confirmButtonText: 'Yes, Delete',
+          background: '#1e1e2f',
+          color: '#e5e7eb'
+        });
+
+        if (result.isConfirmed) {
+          try {
+            const deleteUrl = `${baseUrl}/admin/deleteCoupon/${couponId}`;
+            const response = await fetch(deleteUrl, {
+              method: 'DELETE', // Changed to DELETE to match backend
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include' // Include cookies for session/flash messages
+            });
+
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.message || 'Failed to delete coupon');
+            }
+
+            const data = await response.json();
+            Swal.fire({
+              icon: 'success',
+              title: 'Deleted!',
+              text: 'Coupon has been deleted.',
+              confirmButtonColor: '#d4af37',
+              background: '#1e1e2f',
+              color: '#e5e7eb',
+              timer: 1500
+            }).then(() => {
+              window.location.href = data.redirect || '/admin/coupons';
+            });
+          } catch (error) {
+            console.error('Error deleting coupon:', error);
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: error.message || 'Failed to delete coupon. Please try again.',
+              confirmButtonColor: '#d4af37',
+              background: '#1e1e2f',
+              color: '#e5e7eb'
+            });
+          }
+        }
+      });
+    });
+
+    // Table row hover effects
+    const tableRows = document.querySelectorAll('.table-row');
+    tableRows.forEach(row => {
+      row.addEventListener('mouseenter', () => row.style.transform = 'translateX(4px)');
+      row.addEventListener('mouseleave', () => row.style.transform = 'translateX(0)');
+    });
+
+    // Button interactions
+    const buttons = document.querySelectorAll('button, .add-coupon-btn');
+    buttons.forEach(button => {
+      button.addEventListener('mousedown', () => button.style.transform = 'scale(0.98)');
+      button.addEventListener('mouseup', () => button.style.transform = button.classList.contains('hover:scale-105') ? 'scale(1)' : '');
+      button.addEventListener('mouseleave', () => button.style.transform = button.classList.contains('hover:scale-105') ? 'scale(1)' : '');
+    });
+
+    // Search input focus effect
+    const searchInput = document.querySelector('.search-input');
+    if (searchInput) {
+      const searchContainer = document.querySelector('.search-container');
+      searchInput.addEventListener('focus', () => {
+        searchContainer.classList.add('scale-100', 'shadow-xl');
+      });
+      searchInput.addEventListener('blur', () => {
+        searchContainer.classList.remove('scale-100', 'shadow-xl');
+      });
+    }
+
+    // Display flash messages with SweetAlert2 after page load
+    <% if (success && success.length > 0) { %>
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: '<%= success %>',
+        confirmButtonColor: '#d4af37',
+        background: '#1e1e2f',
+        color: '#e5e7eb',
+        timer: 3000,
+        timerProgressBar: true
+      });
+    <% } %>
+    <% if (error && error.length > 0) { %>
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: '<%= error %>',
+        confirmButtonColor: '#d4af37',
+        background: '#1e1e2f',
+        color: '#e5e7eb',
+        timer: 3000,
+        timerProgressBar: true
+      });
+    <% } %>
+  });
+</script>

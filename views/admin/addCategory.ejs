@@ -1,0 +1,133 @@
+<%- include('./partials/adminHeader.ejs') %>
+
+<div class="flex min-h-screen gradient-bg animate-gradient">
+    <%- include('./partials/adminSidebar.ejs') %>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-6 overflow-y-auto" style="margin-left: var(--sidebar-width, 16rem);">
+        <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Header Section -->
+            <div class="flex justify-between items-center mb-8 animate-fade-in-up">
+                <h3 class="text-3xl font-extrabold bg-gradient-to-r from-[#d4af37] to-[#f9e076] bg-clip-text text-transparent tracking-tight">Add New Category</h3>
+                <a href="/admin/categories" 
+                   class="inline-flex items-center px-4 py-2 rounded-lg bg-gradient-to-r from-[#d4af37] to-[#f9e076] text-white transition-all duration-300 transform hover:scale-105 group glass-effect-dark">
+                    <svg class="w-5 h-5 mr-2 transition-transform duration-300 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path>
+                    </svg>
+                    Back to Categories
+                </a>
+            </div>
+
+            <!-- Form Section -->
+            <div class="glass-effect-dark rounded-xl p-8 max-w-2xl mx-auto shadow-xl border border-white/10 animate-fade-in-up animation-delay-200">
+                <form id="categoryForm" class="space-y-6">
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-[var(--text-color)] mb-2">Category Name</label>
+                        <input 
+                            type="text" 
+                            id="name" 
+                            name="name" 
+                            class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] placeholder-gray-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300 hover:bg-[var(--secondary-bg)]"
+                            placeholder="Enter category name"
+                        >
+                        <p class="mt-1 text-sm text-gray-400">Choose a unique and descriptive name for the category</p>
+                    </div>
+
+                    <div>
+                        <label for="description" class="block text-sm font-medium text-[var(--text-color)] mb-2">Description</label>
+                        <textarea 
+                            id="description" 
+                            name="description" 
+                            rows="4" 
+                            class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] placeholder-gray-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300 hover:bg-[var(--secondary-bg)]"
+                            placeholder="Enter category description"
+                        ></textarea>
+                        <p class="mt-1 text-sm text-gray-400">Provide a clear description of what this category represents</p>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button 
+                            type="submit" 
+                            class="inline-flex items-center px-6 py-3 rounded-lg bg-gradient-to-r from-[#d4af37] to-[#f9e076] text-white font-medium transition-all duration-300 transform hover:scale-105 group"
+                        >
+                            <svg class="w-5 h-5 mr-2 transition-transform duration-300 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Add Category
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Dynamic sidebar height adjustment
+        const sidebar = document.querySelector('.sidebar');
+        const main = document.querySelector('main');
+        const updateHeight = () => {
+            const mainHeight = main.offsetHeight;
+            sidebar.style.height = `${Math.max(mainHeight, window.innerHeight)}px`;
+        };
+        updateHeight();
+        window.addEventListener('resize', updateHeight);
+
+        // Form submission with SweetAlert2
+        document.getElementById('categoryForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = {
+                name: document.getElementById('name').value,
+                description: document.getElementById('description').value
+            };
+
+            try {
+                const response = await fetch('/admin/addCategory', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    await Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'Failed to add category',
+                        background: 'var(--primary-bg)',
+                        color: 'var(--text-color)',
+                        confirmButtonColor: '#d4af37'
+                    });
+                    return;
+                }
+
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: 'Category added successfully',
+                    background: 'var(--primary-bg)',
+                    color: 'var(--text-color)',
+                    confirmButtonColor: '#d4af37'
+                });
+
+                window.location.href = '/admin/categories';
+            } catch (error) {
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An unexpected error occurred',
+                    background: 'var(--primary-bg)',
+                    color: 'var(--text-color)',
+                    confirmButtonColor: '#d4af37'
+                });
+            }
+        });
+    });
+</script>
+
+<%- include('./partials/adminFooter.ejs') %>

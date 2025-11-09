@@ -1,0 +1,551 @@
+<%- include('./partials/adminHeader.ejs') %>
+
+<style>
+    :root {
+        --sidebar-width: 16rem;
+        --primary-bg: #1e1e2f;
+        --secondary-bg: #2a2438;
+        --content-bg: #2d2d44;
+        --accent-start: #d4af37;
+        --accent-end: #f9e076;
+        --text-color: #e5e7eb;
+    }
+
+    .glass-effect-dark {
+        @apply bg-[var(--content-bg)]/80 backdrop-blur-md border border-white/10;
+    }
+
+    .golden-button {
+        @apply bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white px-6 py-3 rounded-lg shadow-lg hover:scale-105 transition-all duration-300;
+    }
+
+    .fade-in {
+        animation: fadeIn 0.5s ease-in;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .image-preview {
+        position: relative;
+        display: inline-block;
+    }
+    .image-preview img {
+        transition: opacity 0.3s ease;
+    }
+    .image-preview:hover .remove-btn {
+        opacity: 1;
+    }
+    .remove-btn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: rgba(255, 0, 0, 0.8);
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        text-align: center;
+        line-height: 20px;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    #cropModal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+    #cropContainer {
+        background: var(--primary-bg);
+        padding: 20px;
+        border-radius: 10px;
+        border: 1px solid var(--secondary-bg);
+        max-width: 600px;
+        width: 90%;
+    }
+    #imageToCrop {
+        max-width: 100%;
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+
+<div class="flex min-h-screen gradient-bg animate-gradient" style="background: linear-gradient(to bottom right, #1e1e2f, #2a2438) !important;">
+    <div class="sidebar fixed top-0 left-0 h-full w-64 md:w-[var(--sidebar-width)] bg-[var(--primary-bg)] z-50 transition-transform duration-300 md:translate-x-0 -translate-x-full shadow-lg">
+        <div class="flex flex-col h-full text-[var(--text-color)]">
+            <div class="flex items-center justify-start p-6 border-b border-white/10">
+                <span class="text-2xl font-extrabold golden-button bg-clip-text text-transparent">InfinityTech</span>
+            </div>
+            <nav class="flex-1 space-y-2 p-4 overflow-y-auto">
+                <% const navItems = [
+                    { href: '/admin/dashboard', icon: 'fa-home', label: 'Dashboard', active: (typeof path !== 'undefined' && path === '/admin/dashboard') },
+                    { href: '/admin/products', icon: 'fa-box', label: 'Products', active: (typeof path !== 'undefined' && path.includes('/admin/product')) },
+                    { href: '/admin/categories', icon: 'fa-tags', label: 'Categories', active: (typeof path !== 'undefined' && path.includes('/admin/categor')) },
+                    { href: '/admin/users', icon: 'fa-users', label: 'Customers', active: (typeof path !== 'undefined' && path === '/admin/users') },
+                    { href: '/admin/orders', icon: 'fa-shopping-bag', label: 'Orders', active: (typeof path !== 'undefined' && path === '/admin/orders') },
+                    { href: '/admin/return/requests', icon: 'fa-undo', label: 'Return Orders', active: (typeof path !== 'undefined' && path === '/admin/return/requests') },
+                    { href: '/admin/offers', icon: 'fa-percentage', label: 'Offer', active: (typeof path !== 'undefined' && path === '/admin/offers') },
+                    { href: '/admin/coupons', icon: 'fa-ticket-alt', label: 'Coupon', active: (typeof path !== 'undefined' && path === '/admin/coupons') },
+                    { href: '/admin/logout', icon: 'fa-sign-out-alt', label: 'Logout', active: (typeof path !== 'undefined' && path === '/admin/logout') }
+                ]; %>
+                <% navItems.forEach(item => { %>
+                    <a href="<%= item.href %>" class="flex items-center py-2.5 px-4 rounded transition duration-300 group <%= item.active ? 'golden-button text-white scale-105' : 'text-[var(--text-color)] hover:bg-[var(--secondary-bg)] hover:text-white hover:scale-105' %>">
+                        <i class="fas <%= item.icon %> w-6 transition-transform duration-300 group-hover:rotate-12"></i>
+                        <span class="ml-3"><%= item.label %></span>
+                    </a>
+                <% }); %>
+            </nav>
+        </div>
+    </div>
+
+    <div class="flex-1 overflow-x-hidden overflow-y-auto ml-0 md:ml-[var(--sidebar-width)]">
+        <div class="container mx-auto px-6 py-8">
+            <div class="flex justify-between items-center mb-8 fade-in">
+                <h3 class="text-4xl font-extrabold bg-gradient-to-r from-[#d4af37] to-[#f9e076] bg-clip-text text-transparent tracking-tight">Edit Product</h3>
+                <a href="/admin/products" class="golden-button flex items-center space-x-2">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back to Products</span>
+                </a>
+            </div>
+
+            <div class="glass-effect-dark rounded-2xl p-8 max-w-4xl mx-auto fade-in">
+                <form id="editProductForm" action="/admin/editProduct/<%= product._id %>" method="POST" enctype="multipart/form-data" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-6">
+                            <div>
+                                <label for="name" class="block text-sm font-medium text-[var(--text-color)] mb-2">Product Name*</label>
+                                <input type="text" id="name" name="name" value="<%= product.name %>" required class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] focus:ring-2 focus:ring-[var(--accent-start)] focus:border-transparent transition-all duration-200">
+                            </div>
+                            <div>
+                                <label for="brand" class="block text-sm font-medium text-[var(--text-color)] mb-2">Brand*</label>
+                                <input type="text" id="brand" name="brand" value="<%= product.brand %>" required class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] focus:ring-2 focus:ring-[var(--accent-start)] focus:border-transparent transition-all duration-200">
+                            </div>
+                            <div>
+                                <label for="description" class="block text-sm font-medium text-[var(--text-color)] mb-2">Description*</label>
+                                <textarea id="description" name="description" rows="4" required class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] focus:ring-2 focus:ring-[var(--accent-start)] focus:border-transparent transition-all duration-200"><%= product.description %></textarea>
+                            </div>
+                            <div>
+                                <label for="category" class="block text-sm font-medium text-[var(--text-color)] mb-2">Category*</label>
+                                <select id="category" name="category" required class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] focus:ring-2 focus:ring-[var(--accent-start)] focus:border-transparent transition-all duration-200">
+                                    <% categories.forEach(category => { %>
+                                        <option value="<%= category._id %>" <%= product.category?._id.toString() === category._id.toString() ? 'selected' : '' %>><%= category.name %></option>
+                                    <% }); %>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-[var(--text-color)] mb-2">Price (₹)*</label>
+                                <input type="number" id="price" name="price" value="<%= product.price %>" required min="0" step="0.01" class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] focus:ring-2 focus:ring-[var(--accent-start)] focus:border-transparent transition-all duration-200">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-[var(--text-color)] mb-2">Discount (%)</label>
+                                <input type="number" id="productOffer" name="productOffer" value="<%= product.productOffer || 0 %>" min="0" max="100" step="0.01" class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] focus:ring-2 focus:ring-[var(--accent-start)] focus:border-transparent transition-all duration-200">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-[var(--text-color)] mb-2">Stock*</label>
+                                <input type="number" id="stock" name="stock" value="<%= product.stock %>" required min="0" class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] focus:ring-2 focus:ring-[var(--accent-start)] focus:border-transparent transition-all duration-200">
+                            </div>
+                        </div>
+                        <div class="space-y-6">
+                            <div class="glass-effect-dark p-6 rounded-lg">
+                                <h3 class="text-lg font-medium text-[var(--text-color)] mb-4">Specifications</h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-[var(--text-color)] mb-2">Processor*</label>
+                                        <input type="text" id="processor" name="processor" value="<%= product.specifications.processor %>" required class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] focus:ring-2 focus:ring-[var(--accent-start)] focus:border-transparent transition-all duration-200">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-[var(--text-color)] mb-2">RAM*</label>
+                                        <input type="text" id="ram" name="ram" value="<%= product.specifications.ram %>" required class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] focus:ring-2 focus:ring-[var(--accent-start)] focus:border-transparent transition-all duration-200">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-[var(--text-color)] mb-2">Storage*</label>
+                                        <input type="text" id="storage" name="storage" value="<%= product.specifications.storage %>" required class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] focus:ring-2 focus:ring-[var(--accent-start)] focus:border-transparent transition-all duration-200">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-[var(--text-color)] mb-2">Graphics*</label>
+                                        <input type="text" id="graphics" name="graphics" value="<%= product.specifications.graphics %>" required class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] focus:ring-2 focus:ring-[var(--accent-start)] focus:border-transparent transition-all duration-200">
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-[var(--text-color)] mb-2">Current Images</label>
+                                <div id="currentImages" class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
+                                    <% product.images.forEach((image, index) => { %>
+                                        <div class="relative group" data-image-index="<%= index %>">
+                                            <img src="<%= image %>" alt="Product image" class="w-full h-32 object-cover rounded-lg">
+                                            <button type="button" class="replace-image-btn absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-red-500 hover:bg-red-400 text-white rounded-full p-2 transition-opacity" data-image-index="<%= index %>">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    <% }); %>
+                                </div>
+                                <label class="block text-sm font-medium text-[var(--text-color)] mb-2">Add New Images (Appends to existing images)</label>
+                                <input type="file" name="images" id="images" multiple accept="image/*" class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] focus:ring-2 focus:ring-[var(--accent-start)] focus:border-transparent transition-all duration-200">
+                                <div id="imagePreviewContainer" class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-4"></div>
+                                <p class="text-sm text-gray-400 mt-1">Note: New images will be added to the existing ones unless replaced individually.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex justify-end space-x-4">
+                        <a href="/admin/products" class="golden-button">Cancel</a>
+                        <button type="submit" id="submitBtn" class="golden-button flex items-center space-x-2">
+                            <i class="fas fa-save"></i>
+                            <span>Save Changes</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="cropModal">
+    <div id="cropContainer">
+        <img id="imageToCrop">
+        <div class="mt-4 flex justify-end space-x-4">
+            <button id="cancelCrop" class="golden-button">Cancel</button>
+            <button id="saveCrop" class="golden-button">Save Crop</button>
+        </div>
+    </div>
+</div>
+
+<%- include('./partials/adminFooter.ejs') %>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        let cropper;
+        let selectedFiles = [];
+        const form = document.getElementById('editProductForm');
+        const imageInput = document.getElementById('images');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+        const submitBtn = document.getElementById('submitBtn');
+        const cropModal = document.getElementById('cropModal');
+        const imageToCrop = document.getElementById('imageToCrop');
+        const saveCropBtn = document.getElementById('saveCrop');
+        const cancelCropBtn = document.getElementById('cancelCrop');
+        let currentFileIndex = null;
+
+        if (!form) {
+            console.error('Form element not found');
+            return;
+        }
+
+        const sidebar = document.querySelector('.sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('-translate-x-full'));
+        }
+
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth < 768 && !sidebar.contains(e.target) && !sidebarToggle?.contains(e.target)) {
+                sidebar.classList.add('-translate-x-full');
+            }
+        });
+
+        function fadeIn(element) {
+            element.style.opacity = '0';
+            element.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                element.style.transition = 'opacity 0.5s ease-in';
+                element.style.opacity = '1';
+            });
+        }
+
+        function fadeOut(element, callback) {
+            element.style.transition = 'opacity 0.5s ease-out';
+            element.style.opacity = '0';
+            element.addEventListener('transitionend', function handler() {
+                element.remove();
+                if (callback) callback();
+                element.removeEventListener('transitionend', handler);
+            }, { once: true });
+        }
+
+        function startCrop(file, index) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imageToCrop.src = e.target.result;
+                cropModal.style.display = 'flex';
+                if (cropper) cropper.destroy();
+                cropper = new Cropper(imageToCrop, {
+                    aspectRatio: 1,
+                    viewMode: 1,
+                    autoCropArea: 0.8,
+                });
+                currentFileIndex = index;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        saveCropBtn.addEventListener('click', () => {
+            const canvas = cropper.getCroppedCanvas();
+            canvas.toBlob((blob) => {
+                selectedFiles[currentFileIndex] = new File([blob], `cropped-${currentFileIndex}.jpg`, { type: 'image/jpeg' });
+                updateImagePreview();
+                cropModal.style.display = 'none';
+                cropper.destroy();
+            }, 'image/jpeg');
+        });
+
+        cancelCropBtn.addEventListener('click', () => {
+            cropModal.style.display = 'none';
+            cropper.destroy();
+        });
+
+        function updateImagePreview() {
+            imagePreviewContainer.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const div = document.createElement('div');
+                    div.className = 'image-preview';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" class="w-24 h-24 object-cover rounded-lg">
+                        <span class="remove-btn" data-index="${index}">×</span>
+                    `;
+                    imagePreviewContainer.appendChild(div);
+                    fadeIn(div);
+
+                    div.querySelector('.remove-btn').addEventListener('click', () => {
+                        fadeOut(div, () => {
+                            selectedFiles.splice(index, 1);
+                            updateImagePreview();
+                        });
+                    });
+
+                    div.querySelector('img').addEventListener('click', () => {
+                        startCrop(file, index);
+                    });
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        imageInput.addEventListener('change', () => {
+            selectedFiles = Array.from(imageInput.files);
+            updateImagePreview();
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const fields = {
+                name: form.querySelector('#name').value.trim(),
+                brand: form.querySelector('#brand').value.trim(),
+                description: form.querySelector('#description').value.trim(),
+                category: form.querySelector('#category').value,
+                price: form.querySelector('#price').value,
+                productOffer: form.querySelector('#productOffer').value || '0',
+                stock: form.querySelector('#stock').value,
+                processor: form.querySelector('#processor').value.trim(),
+                ram: form.querySelector('#ram').value.trim(),
+                storage: form.querySelector('#storage').value.trim(),
+                graphics: form.querySelector('#graphics').value.trim()
+            };
+
+            const requiredFields = {
+                name: 'Product Name',
+                brand: 'Brand',
+                description: 'Description',
+                category: 'Category',
+                price: 'Price',
+                stock: 'Stock',
+                processor: 'Processor',
+                ram: 'RAM',
+                storage: 'Storage',
+                graphics: 'Graphics'
+            };
+
+            const missingFields = Object.entries(requiredFields)
+                .filter(([key]) => !fields[key])
+                .map(([_, label]) => label);
+            if (missingFields.length > 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    text: `Please fill in: ${missingFields.join(', ')}`,
+                    background: '#1e1e2f',
+                    color: '#e5e7eb',
+                    confirmButtonColor: '#d4af37'
+                });
+                return;
+            }
+
+            const price = parseFloat(fields.price);
+            if (isNaN(price) || price < 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Price',
+                    text: 'Price must be a valid non-negative number',
+                    background: '#1e1e2f',
+                    color: '#e5e7eb',
+                    confirmButtonColor: '#d4af37'
+                });
+                return;
+            }
+
+            const stock = parseInt(fields.stock);
+            if (isNaN(stock) || stock < 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Stock',
+                    text: 'Stock must be a valid non-negative integer',
+                    background: '#1e1e2f',
+                    color: '#e5e7eb',
+                    confirmButtonColor: '#d4af37'
+                });
+                return;
+            }
+
+            const discount = parseInt(fields.productOffer);
+            if (isNaN(discount) || discount < 0 || discount > 100) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Discount',
+                    text: 'Discount must be a number between 0 and 100',
+                    background: '#1e1e2f',
+                    color: '#e5e7eb',
+                    confirmButtonColor: '#d4af37'
+                });
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+
+            const formData = new FormData(form);
+            if (selectedFiles.length > 0) {
+                formData.delete('images');
+                selectedFiles.forEach(file => formData.append('images', file));
+            }
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: data.message,
+                        background: '#1e1e2f',
+                        color: '#e5e7eb',
+                        confirmButtonColor: '#d4af37',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    window.location.href = '/admin/products';
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message,
+                        background: '#1e1e2f',
+                        color: '#e5e7eb',
+                        confirmButtonColor: '#d4af37'
+                    });
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i><span>Save Changes</span>';
+                }
+            } catch (error) {
+                console.error('Submission error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An unexpected error occurred. Please try again.',
+                    background: '#1e1e2f',
+                    color: '#e5e7eb',
+                    confirmButtonColor: '#d4af37'
+                });
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i><span>Save Changes</span>';
+            }
+        });
+
+        document.querySelectorAll('.replace-image-btn').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const imageIndex = this.dataset.imageIndex;
+                const productId = '<%= product._id %>';
+
+                const { value: file } = await Swal.fire({
+                    title: 'Replace Image',
+                    text: 'Please upload a new image to replace the selected one.',
+                    input: 'file',
+                    inputAttributes: {
+                        accept: 'image/*',
+                        'aria-label': 'Upload new image'
+                    },
+                    showCancelButton: true,
+                    confirmButtonText: 'Replace',
+                    confirmButtonColor: '#d4af37',
+                    cancelButtonColor: '#dc2626',
+                    background: '#1e1e2f',
+                    color: '#e5e7eb'
+                });
+
+                if (file) {
+                    const formData = new FormData();
+                    formData.append('newImage', file);
+                    formData.append('imageIndex', imageIndex);
+
+                    try {
+                        const response = await fetch(`/admin/replaceProductImage/${productId}`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const data = await response.json();
+
+                        if (data.success) {
+                            const imageElement = this.closest('.relative').querySelector('img');
+                            imageElement.src = data.newImageUrl;
+                            Swal.fire({
+                                title: 'Replaced!',
+                                text: 'Image has been replaced successfully.',
+                                icon: 'success',
+                                background: '#1e1e2f',
+                                color: '#e5e7eb',
+                                confirmButtonColor: '#d4af37',
+                                timer: 1500
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error',
+                                text: data.message,
+                                icon: 'error',
+                                background: '#1e1e2f',
+                                color: '#e5e7eb',
+                                confirmButtonColor: '#d4af37'
+                            });
+                        }
+                    } catch (error) {
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'Failed to replace image',
+                            icon: 'error',
+                            background: '#1e1e2f',
+                            color: '#e5e7eb',
+                            confirmButtonColor: '#d4af37'
+                        });
+                    }
+                }
+            });
+        });
+    });
+</script>

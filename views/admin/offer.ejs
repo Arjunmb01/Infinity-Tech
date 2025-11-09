@@ -1,0 +1,360 @@
+<!-- offers.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InfinityTech Admin - Offer Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --sidebar-width: 16rem;
+            --primary-bg: #1e1e2f; /* Dark blue-gray */
+            --secondary-bg: #2a2438; /* Deep purple-gray */
+            --content-bg: #2d2d44; /* Lighter dark blue for content */
+            --accent-start: #d4af37; /* Rich Gold */
+            --accent-end: #f9e076;   /* Light Yellow */
+            --text-color: #e5e7eb; /* Light gray for text */
+        }
+
+        /* Gradient Background */
+        .gradient-bg {
+            @apply bg-gradient-to-br from-[var(--primary-bg)] to-[var(--secondary-bg)] !important;
+        }
+
+        /* Glass Effect */
+        .glass-effect-dark {
+            @apply bg-[var(--content-bg)]/80 backdrop-blur-md border border-white/10;
+        }
+
+        /* Golden Yellow Gradient for Buttons */
+        .golden-button {
+            @apply bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white px-6 py-3 rounded-lg shadow-lg hover:scale-105 transition-all duration-300;
+        }
+
+        /* Typography and Base Styles */
+        body {
+            @apply font-sans text-[var(--text-color)] min-h-screen m-0 p-0 bg-[var(--primary-bg)] !important;
+        }
+
+        /* Custom Animations */
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+        .animate-gradient {
+            background-size: 200% 200%;
+            animation: gradientAnimation 15s ease infinite;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+        .animation-delay-200 { animation-delay: 0.2s; }
+        .animation-delay-400 { animation-delay: 0.4s; }
+        .animation-delay-600 { animation-delay: 0.6s; }
+
+        /* Tab Styles */
+        .tab-button {
+            @apply inline-block p-4 border-b-2 rounded-t-lg text-[var(--text-color)] hover:text-[var(--accent-start)];
+        }
+        .tab-button.active {
+            @apply text-[var(--accent-start)] border-[var(--accent-start)];
+        }
+
+        /* Table Styles */
+        tr:hover {
+            @apply bg-[var(--content-bg)]/50;
+        }
+
+        /* Main content styling */
+        main {
+            margin-left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
+            min-height: 100vh;
+        }
+
+        /* Sidebar styling */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            z-index: 100;
+            animation: slideIn 0.5s ease-out forwards;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(0); }
+        }
+    </style>
+</head>
+
+<body class="gradient-bg animate-gradient" style="background: linear-gradient(to bottom right, #1e1e2f, #2a2438) !important;">
+    <!-- Sidebar -->
+    <div class="sidebar fixed top-0 left-0 h-full w-64 md:w-[var(--sidebar-width)] bg-[var(--primary-bg)] z-50 transition-transform duration-300 md:translate-x-0 -translate-x-full shadow-lg">
+        <div class="flex flex-col h-full text-[var(--text-color)]">
+            <div class="flex items-center justify-start p-6 border-b border-white/10">
+                <span class="text-4xl font-extrabold bg-gradient-to-r from-[#d4af37] to-[#f9e076] bg-clip-text text-transparent tracking-tight t">InfinityTech</span>
+            </div>
+            
+            <nav class="flex-1 space-y-2 p-4 overflow-y-auto">
+                <% const navItems = [
+                    { href: '/admin/dashboard', icon: 'fa-home', label: 'Dashboard', active: (typeof path !== 'undefined' && path === '/admin/dashboard') },
+                    { href: '/admin/products', icon: 'fa-box', label: 'Products', active: (typeof path !== 'undefined' && path.includes('/admin/product')) },
+                    { href: '/admin/categories', icon: 'fa-tags', label: 'Categories', active: (typeof path !== 'undefined' && path.includes('/admin/categor')) },
+                    { href: '/admin/users', icon: 'fa-users', label: 'Customers', active: (typeof path !== 'undefined' && path === '/admin/users') },
+                    { href: '/admin/orders', icon: 'fa-shopping-bag', label: 'Orders', active: (typeof path !== 'undefined' && path === '/admin/orders') },
+                    { href: '/admin/return/requests', icon: 'fa-undo', label: 'Return Orders', active: (typeof path !== 'undefined' && path === '/admin/return/requests') },
+                    { href: '/admin/offers', icon: 'fa-percentage', label: 'Offer', active: (typeof path !== 'undefined' && path === '/admin/offers') },
+                    { href: '/admin/coupons', icon: 'fa-ticket-alt', label: 'Coupon', active: (typeof path !== 'undefined' && path === '/admin/coupons') },
+                    { href: '/admin/logout', icon: 'fa-sign-out-alt', label: 'Logout', active: (typeof path !== 'undefined' && path === '/admin/logout') }
+                ]; %>
+                <% navItems.forEach(item => { %>
+                    <a href="<%= item.href %>" class="flex items-center py-2.5 px-4 rounded transition duration-300 group <%= item.active ? 'golden-button text-white scale-105' : 'text-[var(--text-color)] hover:bg-[var(--secondary-bg)] hover:text-white hover:scale-105' %>">
+                        <i class="fas <%= item.icon %> w-6 transition-transform duration-300 group-hover:rotate-12"></i>
+                        <span class="ml-3"><%= item.label %></span>
+                    </a>
+                <% }); %>
+            </nav>
+        </div>
+    </div>
+
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <main class="flex-1 overflow-x-hidden overflow-y-auto p-6">
+            <div class="flex justify-between items-center mb-8 animate-fade-in-up">
+                <h1 class="text-3xl font-extrabold bg-gradient-to-r from-[#d4af37] to-[#f9e076] bg-clip-text text-transparent tracking-tight" aria-label="Categories Management">Offers</h1>
+                <a href="/admin/offers/add" 
+                   class="inline-flex items-center px-4 py-2 rounded-lg bg-gradient-to-r from-[#d4af37] to-[#f9e076] text-white font-medium transition-all duration-300 transform hover:scale-105 group"
+                   aria-label="Add New Category">
+                    <svg class="w-5 h-5 mr-2 transition-transform duration-300 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    Add Offer
+                </a>
+            </div>
+
+            <% if (success.length > 0) { %>
+                <div class="glass-effect-dark bg-green-500/20 text-green-400 p-4 rounded mb-4 animate-fade-in-up animation-delay-400"><%= success %></div>
+            <% } %>
+            <% if (error.length > 0) { %>
+                <div class="glass-effect-dark bg-red-500/20 text-red-400 p-4 rounded mb-4 animate-fade-in-up animation-delay-400"><%= error %></div>
+            <% } %>
+
+            <div class="glass-effect-dark rounded-xl shadow-2xl overflow-hidden animate-fade-in-up animation-delay-600">
+                <div class="border-b border-white/10">
+                    <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" role="tablist">
+                        <li class="mr-2" role="presentation">
+                            <button class="tab-button inline-block p-4 border-b-2 rounded-t-lg text-gray-300 hover:text-[var(--accent-start)] active" id="product-tab" data-tabs-target="#product-offers" type="button" role="tab" aria-selected="true">Product Offers</button>
+                        </li>
+                        <li class="mr-2" role="presentation">
+                            <button class="tab-button inline-block p-4 border-b-2 rounded-t-lg text-gray-300 hover:text-[var(--accent-start)]" id="category-tab" data-tabs-target="#category-offers" type="button" role="tab" aria-selected="false">Category Offers</button>
+                        </li>
+                    </ul>
+                </div>
+
+                <div id="tabContent">
+                    <div class="p-6 rounded-lg bg-[var(--content-bg)]/80" id="product-offers" role="tabpanel">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left text-[var(--text-color)]">
+                                <thead class="text-xs text-[var(--text-color)] uppercase bg-[var(--secondary-bg)]">
+                                    <tr>
+                                        <th class="px-6 py-3">Name</th>
+                                        <th class="px-6 py-3">Discount</th>
+                                        <th class="px-6 py-3">Products</th>
+                                        <th class="px-6 py-3">Valid Until</th>
+                                        <th class="px-6 py-3">Status</th>
+                                        <th class="px-6 py-3">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% offers.forEach(offer => { %>
+                                        <% if (offer.Product && offer.Product.length > 0) { %>
+                                            <tr class="bg-[var(--content-bg)]/80 border-b border-white/10 hover:bg-[var(--content-bg)]/50">
+                                                <td class="px-6 py-4 font-medium text-[var(--text-color)]"><%= offer.name %></td>
+                                                <td class="px-6 py-4"><%= offer.discountValue %><%= offer.discountType === 'percentage' ? '%' : ' INR' %></td>
+                                                <td class="px-6 py-4"><%= offer.Product.length %> products</td>
+                                                <td class="px-6 py-4"><%= new Date(offer.endDate).toLocaleDateString() %></td>
+                                                <td class="px-6 py-4">
+                                                    <span class="text-xs font-medium px-2.5 py-0.5 rounded <%= offer.isActive ? 'bg-green-500/20 text-green-300 border border-green-500/20' : 'bg-red-500/20 text-red-300 border border-red-500/20' %>">
+                                                        <%= offer.isActive ? 'Active' : 'Inactive' %>
+                                                    </span>
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <div class="flex space-x-2">
+                                                        <a href="/admin/offers/edit/<%= offer._id %>" class="text-[var(--accent-start)] hover:text-[var(--accent-end)]">Edit</a>
+                                                        <button onclick="toggleOfferStatus('<%= offer._id %>')" class="text-red-400 hover:text-red-600">
+                                                            <%= offer.isActive ? 'Deactivate' : 'Activate' %>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        <% } %>
+                                    <% }) %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="hidden p-6 rounded-lg bg-[var(--content-bg)]/80" id="category-offers" role="tabpanel">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left text-[var(--text-color)]">
+                                <thead class="text-xs text-[var(--text-color)] uppercase bg-[var(--secondary-bg)]">
+                                    <tr>
+                                        <th class="px-6 py-3">Name</th>
+                                        <th class="px-6 py-3">Discount</th>
+                                        <th class="px-6 py-3">Categories</th>
+                                        <th class="px-6 py-3">Valid Until</th>
+                                        <th class="px-6 py-3">Status</th>
+                                        <th class="px-6 py-3">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% offers.forEach(offer => { %>
+                                        <% if (offer.Categories && offer.Categories.length > 0) { %>
+                                            <tr class="bg-[var(--content-bg)]/80 border-b border-white/10 hover:bg-[var(--content-bg)]/50">
+                                                <td class="px-6 py-4 font-medium text-[var(--text-color)]"><%= offer.name %></td>
+                                                <td class="px-6 py-4"><%= offer.discountValue %><%= offer.discountType === 'percentage' ? '%' : ' INR' %></td>
+                                                <td class="px-6 py-4">
+                                                    <% offer.Categories.forEach(category => { %>
+                                                        <%= category.name || 'Unnamed' %>,
+                                                    <% }) %>
+                                                </td>
+                                                <td class="px-6 py-4"><%= new Date(offer.endDate).toLocaleDateString() %></td>
+                                                <td class="px-6 py-4">
+                                                    <span class="text-xs font-medium px-2.5 py-0.5 rounded <%= offer.isActive ? 'bg-green-500/20 text-green-300 border border-green-500/20' : 'bg-red-500/20 text-red-300 border border-red-500/20' %>">
+                                                        <%= offer.isActive ? 'Active' : 'Inactive' %>
+                                                    </span>
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <div class="flex space-x-2">
+                                                        <a href="/admin/offers/edit/<%= offer._id %>" class="text-[var(--accent-start)] hover:text-[var(--accent-end)]">Edit</a>
+                                                        <button onclick="toggleOfferStatus('<%= offer._id %>')" class="text-red-400 hover:text-red-600">
+                                                            <%= offer.isActive ? 'Deactivate' : 'Activate' %>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        <% } %>
+                                    <% }) %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Sidebar Toggle for Mobile
+        const sidebar = document.querySelector('.sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('-translate-x-full'));
+        }
+
+        // Close sidebar on outside click (mobile)
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth < 768 && !sidebar.contains(e.target) && !sidebarToggle?.contains(e.target)) {
+                sidebar.classList.add('-translate-x-full');
+            }
+        });
+
+        // Tab Functionality
+        const tabElements = [
+            { id: 'product-tab', triggerEl: document.querySelector('#product-tab'), targetEl: document.querySelector('#product-offers') },
+            { id: 'category-tab', triggerEl: document.querySelector('#category-tab'), targetEl: document.querySelector('#category-offers') }
+        ];
+
+        tabElements[0].targetEl.classList.remove('hidden');
+        tabElements[0].triggerEl.classList.add('text-[var(--accent-start)]', 'border-[var(--accent-start)]');
+
+        tabElements.forEach(tab => {
+            tab.triggerEl.addEventListener('click', () => {
+                tabElements.forEach(t => {
+                    t.targetEl.classList.add('hidden');
+                    t.triggerEl.classList.remove('text-[var(--accent-start)]', 'border-[var(--accent-start)]');
+                });
+                tab.targetEl.classList.remove('hidden');
+                tab.triggerEl.classList.add('text-[var(--accent-start)]', 'border-[var(--accent-start)]');
+            });
+        });
+
+        // Toggle Offer Status
+        async function toggleOfferStatus(offerId) {
+            const action = document.querySelector(`button[onclick="toggleOfferStatus('${offerId}')"]`).textContent.trim();
+            const confirmText = action === 'Deactivate' ? 'deactivate' : 'activate';
+
+            const result = await Swal.fire({
+                title: `Are you sure?`,
+                text: `Do you want to ${confirmText} this offer?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d4af37',
+                cancelButtonColor: '#ef4444',
+                confirmButtonText: `Yes, ${confirmText} it!`,
+                background: '#1e1e2f',
+                color: '#e5e7eb'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/admin/offers/toggle/${offerId}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    if (response.ok) {
+                        Swal.fire({
+                            title: 'Success',
+                            text: `Offer has been ${confirmText}d`,
+                            icon: 'success',
+                            background: '#1e1e2f',
+                            color: '#e5e7eb',
+                            confirmButtonColor: '#d4af37'
+                        }).then(() => window.location.reload());
+                    } else {
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'Failed to update offer status',
+                            icon: 'error',
+                            background: '#1e1e2f',
+                            color: '#e5e7eb',
+                            confirmButtonColor: '#d4af37'
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'An error occurred',
+                        icon: 'error',
+                        background: '#1e1e2f',
+                        color: '#e5e7eb',
+                        confirmButtonColor: '#d4af37'
+                    });
+                }
+            }
+        }
+
+        // Animate Elements
+        document.addEventListener('DOMContentLoaded', () => {
+            const animateElements = () => {
+                const elements = document.querySelectorAll('.animate-fade-in-up');
+                elements.forEach((element, index) => {
+                    element.style.animationDelay = `${index * 0.2}s`;
+                });
+            };
+            animateElements();
+        });
+    </script>
+</body>
+</html>

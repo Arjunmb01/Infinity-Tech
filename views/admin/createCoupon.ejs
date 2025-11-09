@@ -1,0 +1,404 @@
+<!-- createCoupon.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InfinityTech Admin - <%= typeof title !== 'undefined' ? title : 'Add Coupons' %></title>
+
+    <!-- External Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root {
+            --sidebar-width: 16rem;
+            --primary-bg: #1e1e2f; /* Dark blue-gray */
+            --secondary-bg: #2a2438; /* Deep purple-gray */
+            --content-bg: #2d2d44; /* Lighter dark blue for content */
+            --accent-start: #d4af37; /* Rich Gold */
+            --accent-end: #f9e076;   /* Light Yellow */
+            --text-color: #e5e7eb; /* Light gray for text */
+            --secondary-button: #4b5563; /* Gray-600 for secondary buttons */
+        }
+
+        /* Gradient Background */
+        .gradient-bg {
+            @apply bg-gradient-to-br from-[var(--primary-bg)] to-[var(--secondary-bg)] !important;
+        }
+
+        /* Glass Effect for Content */
+        .glass-effect-dark {
+            @apply bg-[var(--content-bg)]/80 backdrop-blur-md border border-white/10;
+        }
+
+        /* Golden Yellow Gradient for Buttons */
+        .golden-button {
+            @apply bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white px-6 py-3 rounded-lg shadow-lg hover:scale-105 transition-all duration-300;
+        }
+
+        /* Typography and Base Styles */
+        body {
+            @apply font-sans text-[var(--text-color)] min-h-screen m-0 p-0 bg-[var(--primary-bg)] !important;
+        }
+
+        /* Custom Animations */
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+
+        .animate-gradient {
+            background-size: 200% 200%;
+            animation: gradientAnimation 15s ease infinite;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        .animation-delay-200 { animation-delay: 0.2s; }
+        .animation-delay-400 { animation-delay: 0.4s; }
+        .animation-delay-600 { animation-delay: 0.6s; }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #4b5563;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.toggle-slider {
+            background-color: var(--accent-start);
+        }
+
+        input:checked+.toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Error Styling */
+        .error-text {
+            color: #ef4444;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .error input, .error select {
+            border-color: #ef4444;
+        }
+    </style>
+</head>
+
+<body class="gradient-bg animate-gradient" style="background: linear-gradient(to bottom right, #1e1e2f, #2a2438) !important;">
+    <!-- Sidebar -->
+    <div class="sidebar fixed top-0 left-0 h-full w-64 md:w-[var(--sidebar-width)] bg-[var(--primary-bg)] z-50 transition-transform duration-300 md:translate-x-0 -translate-x-full shadow-lg">
+        <div class="flex flex-col h-full text-[var(--text-color)]">
+            <div class="flex items-center justify-start p-6 border-b border-white/10">
+                <span class="text-2xl font-extrabold golden-button bg-clip-text text-transparent">InfinityTech</span>
+            </div>
+            
+            <nav class="flex-1 space-y-2 p-4 overflow-y-auto">
+                <% const navItems = [
+                    { href: '/admin/dashboard', icon: 'fa-home', label: 'Dashboard', active: (typeof path !== 'undefined' && path === '/admin/dashboard') },
+                    { href: '/admin/products', icon: 'fa-box', label: 'Products', active: (typeof path !== 'undefined' && path.includes('/admin/product')) },
+                    { href: '/admin/categories', icon: 'fa-tags', label: 'Categories', active: (typeof path !== 'undefined' && path.includes('/admin/categor')) },
+                    { href: '/admin/users', icon: 'fa-users', label: 'Customers', active: (typeof path !== 'undefined' && path === '/admin/users') },
+                    { href: '/admin/orders', icon: 'fa-shopping-bag', label: 'Orders', active: (typeof path !== 'undefined' && path === '/admin/orders') },
+                    { href: '/admin/return/requests', icon: 'fa-undo', label: 'Return Orders', active: (typeof path !== 'undefined' && path === '/admin/return/requests') },
+                    { href: '/admin/offers', icon: 'fa-percentage', label: 'Offer', active: (typeof path !== 'undefined' && path === '/admin/offers') },
+                    { href: '/admin/coupons', icon: 'fa-ticket-alt', label: 'Coupon', active: (typeof path !== 'undefined' && path === '/admin/coupons') },
+                    { href: '/admin/logout', icon: 'fa-sign-out-alt', label: 'Logout', active: (typeof path !== 'undefined' && path === '/admin/logout') }
+                ]; %>
+                <% navItems.forEach(item => { %>
+                    <a href="<%= item.href %>" class="flex items-center py-2.5 px-4 rounded transition duration-300 group <%= item.active ? 'golden-button text-white scale-105' : 'text-[var(--text-color)] hover:bg-[var(--secondary-bg)] hover:text-white hover:scale-105' %>">
+                        <i class="fas <%= item.icon %> w-6 transition-transform duration-300 group-hover:rotate-12"></i>
+                        <span class="ml-3"><%= item.label %></span>
+                    </a>
+                <% }); %>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="ml-0 md:ml-[var(--sidebar-width)] p-6 min-h-screen">
+        <div class="flex items-center justify-between mb-8 animate-fade-in-up">
+            <h1 class="text-3xl font-extrabold bg-gradient-to-r from-[#d4af37] to-[#f9e076] bg-clip-text text-transparent tracking-tight" aria-label="Categories Management">ADD NEW Coupon</h1>
+
+            <a href="/admin/coupons" 
+            class="inline-flex items-center px-4 py-2 rounded-lg bg-gradient-to-r from-[#d4af37] to-[#f9e076] text-white transition-all duration-300 transform hover:scale-105 group glass-effect">
+             <svg class="w-5 h-5 mr-2 transition-transform duration-300 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path>
+             </svg>
+             Back to Coupons
+         </a>
+        </div>
+
+        <% if (error_msg && error_msg.length > 0) { %>
+            <div id="errorMessage" class="glass-effect-dark p-4 rounded-lg mb-6 animate-fade-in-up animation-delay-200 text-red-400 border-red-500/20">
+                <strong class="font-bold">Error!</strong>
+                <span class="block sm:inline"><%= error_msg %></span>
+            </div>
+        <% } %>
+
+        <div class="glass-effect-dark p-8 rounded-lg animate-fade-in-up animation-delay-400">
+            <form method="post" action="/admin/addCoupon" id="couponForm" class="space-y-8" novalidate>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-white">Coupon Name</label>
+                        <input value="<%= oldValue.name || '' %>" type="text" name="name" class="w-full bg-[var(--content-bg)] border border-white/10 px-4 py-3 text-white rounded-lg focus:ring-2 focus:ring-[var(--accent-start)] focus:border-transparent transition-all" placeholder="Enter coupon name">
+                        <span class="error-text">Coupon name is required</span>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium flex items-center justify-between">
+                            Coupon Code
+                            <span class="ml-2 text-xs bg-[var(--accent-start)]/20 text-[var(--accent-start)] text-white py-1 rounded">UPPERCASE</span>
+                        </label>
+                        <input value="<%= oldValue.code || '' %>" type="text" name="code" class="w-full bg-[var(--content-bg)] border border-white/10 px-4 py-3 text-white rounded-lg uppercase focus:ring-2 focus:ring-[var(--accent-start)] focus:border-transparent transition-all" placeholder="Auto-generated code" readonly>
+                        <span class="error-text">Coupon code is required</span>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-white">Offer Type</label>
+                        <select name="offerType" class="w-full bg-[var(--content-bg)] border border-white/10 px-4 py-3 rounded-lg focus:ring-2 text-white focus:ring-[var(--accent-start)] focus:border-transparent transition-all">
+                            <option value="<%= oldValue.offerType || '' %>"><%= oldValue.offerType || 'Select Offer Type' %></option>
+                            <option value="percentage">Percentage</option>
+                            <option value="flat">Flat</option>
+                        </select>
+                        <span class="error-text">Please select an offer type</span>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-white">Offer Value</label>
+                        <input value="<%= oldValue.offerValue || '' %>" type="number" name="offerValue" min="1" max="100" class="w-full bg-[var(--content-bg)] text-white border border-white/10 px-4 py-3 rounded-lg focus:ring-2 focus:ring-[var(--accent-start)] focus:border-transparent transition-all" placeholder="Enter offer value">
+                        <span class="error-text">Offer value must be between 1 and 100</span>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-white">Minimum Purchase Amount</label>
+                        <input value="<%= oldValue.minimumPrice || '' %>" type="number" name="minimumPrice" min="0" class="w-full bg-[var(--content-bg)] border text-white border-white/10 px-4 py-3 rounded-lg focus:ring-2 focus:ring-[var(--accent-start)] focus:border-transparent transition-all" placeholder="Enter minimum amount">
+                        <span class="error-text">Minimum amount must be 0 or greater</span>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-white">Expiry Date</label>
+                        <input value="<%= oldValue.expiredOn || '' %>" type="text" name="expiredOn" class="flatpickr-input w-full bg-[var(--content-bg)] border text-white border-white/10 px-4 py-3 rounded-lg focus:ring-2 focus:ring-[var(--accent-start)] focus:border-transparent transition-all" placeholder="Select expiry date">
+                        <span class="error-text">Expiry date is required</span>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-white">Usage Limit</label>
+                        <input value="<%= oldValue.usageLimit || '' %>" type="number" name="usageLimit" min="1" class="w-full bg-[var(--content-bg)] border border-white/10 px-4 text-white py-3 rounded-lg focus:ring-2 focus:ring-[var(--accent-start)] focus:border-transparent transition-all" placeholder="Enter usage limit">
+                        <span class="error-text">Usage limit must be 1 or greater</span>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-white">Usage Per User</label>
+                        <input value="<%= oldValue.usagePerUserLimit || '' %>" type="number" name="usagePerUserLimit" min="1" class="w-full bg-[var(--content-bg)] border text-white border-white/10 px-4 py-3 rounded-lg focus:ring-2 focus:ring-[var(--accent-start)] focus:border-transparent transition-all" placeholder="Enter per user limit" value="1">
+                        <span class="error-text">Usage per user must be 1 or greater</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-4 pt-4">
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="isActive" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span class="text-sm font-medium text-white">Active Status</span>
+                </div>
+
+                <button type="submit" class="glass-effect bg-gradient-to-r from-[#d4af37] to-[#f9e076] text-white px-4 py-2 rounded-lg hover:scale-105 transition-all duration-300 mt-4 w-full py-4 font-medium">Create Coupon</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer Scripts -->
+    <script>
+        // Sidebar Toggle for Mobile
+        const sidebar = document.querySelector('.sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('-translate-x-full'));
+        }
+
+        // Close sidebar on outside click (mobile)
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth < 768 && !sidebar.contains(e.target) && !sidebarToggle?.contains(e.target)) {
+                sidebar.classList.add('-translate-x-full');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize flatpickr
+            flatpickr(".flatpickr-input", {
+                minDate: "today",
+                dateFormat: "Y-m-d"
+            });
+
+            // Animate form elements
+            const animateElements = () => {
+                const elements = document.querySelectorAll('.animate-fade-in-up');
+                elements.forEach((element, index) => {
+                    element.style.animationDelay = `${index * 0.2}s`;
+                });
+            };
+            animateElements();
+
+            // Enhanced form interactions
+            const formInputs = document.querySelectorAll('input, select');
+            formInputs.forEach(input => {
+                input.addEventListener('focus', () => {
+                    input.parentElement.style.transform = 'translateY(-2px)';
+                });
+                input.addEventListener('blur', () => {
+                    input.parentElement.style.transform = '';
+                });
+            });
+
+            // Form validation
+            const form = document.getElementById('couponForm');
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                let isValid = true;
+
+                // Reset error states
+                form.querySelectorAll('.error-text').forEach(error => error.style.display = 'none');
+                form.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+
+                // Coupon Name
+                const name = form.querySelector('input[name="name"]');
+                if (!name.value.trim()) {
+                    showError(name, 'Coupon name is required');
+                    isValid = false;
+                }
+
+                // Coupon Code
+                const code = form.querySelector('input[name="code"]');
+                if (!code.value.trim()) {
+                    showError(code, 'Coupon code is required');
+                    isValid = false;
+                }
+
+                // Offer Type
+                const offerType = form.querySelector('select[name="offerType"]');
+                if (!offerType.value || offerType.value === 'Select Offer Type') {
+                    showError(offerType, 'Please select an offer type');
+                    isValid = false;
+                }
+
+                // Offer Value
+                const offerValue = form.querySelector('input[name="offerValue"]');
+                const offerValNum = parseFloat(offerValue.value);
+                if (!offerValue.value || offerValNum < 1 || offerValNum > 100) {
+                    showError(offerValue, 'Offer value must be between 1 and 100');
+                    isValid = false;
+                }
+
+                // Minimum Purchase Amount
+                const minimumPrice = form.querySelector('input[name="minimumPrice"]');
+                const minPriceNum = parseFloat(minimumPrice.value);
+                if (minimumPrice.value === '' || minPriceNum < 0) {
+                    showError(minimumPrice, 'Minimum amount must be 0 or greater');
+                    isValid = false;
+                }
+
+                // Expiry Date
+                const expiredOn = form.querySelector('input[name="expiredOn"]');
+                if (!expiredOn.value) {
+                    showError(expiredOn, 'Expiry date is required');
+                    isValid = false;
+                }
+
+                // Usage Limit
+                const usageLimit = form.querySelector('input[name="usageLimit"]');
+                const usageLimitNum = parseInt(usageLimit.value);
+                if (!usageLimit.value || usageLimitNum < 1) {
+                    showError(usageLimit, 'Usage limit must be 1 or greater');
+                    isValid = false;
+                }
+
+                // Usage Per User
+                const usagePerUserLimit = form.querySelector('input[name="usagePerUserLimit"]');
+                const usagePerUserNum = parseInt(usagePerUserLimit.value);
+                if (!usagePerUserLimit.value || usagePerUserNum < 1) {
+                    showError(usagePerUserLimit, 'Usage per user must be 1 or greater');
+                    isValid = false;
+                }
+
+                if (isValid) {
+                    form.submit();
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Validation Error',
+                        text: 'Please correct the errors in the form.',
+                        background: '#1e1e2f',
+                        color: '#e5e7eb',
+                        confirmButtonColor: '#d4af37'
+                    });
+                }
+            });
+
+            // Show error function
+            function showError(input, message) {
+                const errorElement = input.nextElementSibling;
+                input.parentElement.classList.add('error');
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+            }
+        });
+
+        function generateNewCode() {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            const codeLength = 8;
+            let code = '';
+            for (let i = 0; i < codeLength; i++) {
+                code += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            document.querySelector('input[name="code"]').value = code;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex">
+    <%- include('../partials/profileSideBar') %>
+    
+    <div class="flex-1 p-8 flex justify-center items-start">
+        <div class="w-full max-w-2xl">
+            <% if (locals.messages?.success) { %>
+                <div id="successMessage" class="bg-green-500 text-white p-4 rounded-lg mb-4 flex items-center justify-between animate-fade-in hidden">
+                    <span><i class="fas fa-check-circle mr-2"></i><%= messages.success %></span>
+                    <button class="close-btn hover:text-gray-200 focus:outline-none">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            <% } %>
+            
+            <% if (locals.messages?.error) { %>
+                <div id="errorMessage" class="bg-red-500 text-white p-4 rounded-lg mb-4 flex items-center justify-between animate-fade-in hidden">
+                    <span><i class="fas fa-exclamation-circle mr-2"></i><%= messages.error %></span>
+                    <button class="close-btn hover:text-gray-200 focus:outline-none">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            <% } %>
+            
+            <div class="bg-white/10 backdrop-blur-lg p-8 rounded-lg shadow-lg text-white hover-scale">
+                <h1 class="text-2xl font-bold mb-2">Edit Profile</h1>
+                <p class="text-white/70 mb-6">Update your personal information</p>
+                
+                <form action="/edit-profile" method="POST" class="space-y-6" novalidate>
+                    <div>
+                        <label for="name" class="block text-white mb-2">Full Name</label>
+                        <input 
+                            type="text" 
+                            id="name"
+                            name="name" 
+                            value="<%= locals.user?.name %>" 
+                            class="w-full p-3 rounded bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                            required
+                            minlength="2"
+                            maxlength="50"
+                        >
+                        <% if (locals.errors?.name) { %>
+                            <p class="text-red-400 text-sm mt-1"><%= errors.name %></p>
+                        <% } %>
+                    </div>
+                    
+                    <div>
+                        <label for="email" class="block text-white mb-2">Email Address</label>
+                        <input 
+                            type="email" 
+                            id="email"
+                            name="email" 
+                            value="<%= locals.user?.email %>" 
+                            class="w-full p-3 rounded bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                            required
+                            readonly
+                        >
+                        <% if (locals.errors?.email) { %>
+                            <p class="text-red-400 text-sm mt-1"><%= errors.email %></p>
+                        <% } %>
+                    </div>
+                    
+                    <div>
+                        <label for="phone" class="block text-white mb-2">Phone Number</label>
+                        <input 
+                            type="tel" 
+                            id="phone"
+                            name="phone" 
+                            value="<%= locals.user?.phone %>" 
+                            pattern="\d{10}"
+                            class="w-full p-3 rounded bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                            required
+                            placeholder="10-digit number"
+                        >
+                        <% if (locals.errors?.phone) { %>
+                            <p class="text-red-400 text-sm mt-1"><%= errors.phone %></p>
+                        <% } %>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-4">
+                        <button 
+                            type="button" 
+                            id="cancel-btn"
+                            class="px-6 py-3 rounded bg-white/10 text-white hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/50"
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            type="submit" 
+                            class="px-6 py-3 rounded bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-hide flash messages after 5 seconds
+        setTimeout(() => {
+            const messages = document.querySelectorAll('#successMessage, #errorMessage');
+            messages.forEach(msg => {
+                msg.style.opacity = '0';
+                msg.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => msg.remove(), 500);
+            });
+        }, 5000);
+
+        // Close flash messages on button click
+        document.querySelectorAll('.close-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                button.parentElement.remove();
+            });
+        });
+
+        // Cancel button handler
+        document.getElementById('cancel-btn').addEventListener('click', () => {
+            window.location.href = '/profile';
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!-- Search Results Page -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Search Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">
+            <% if (searchQuery) { %>
+                Search Results for "<span class="text-indigo-600"><%= searchQuery %></span>"
+            <% } else { %>
+                Search Products
+            <% } %>
+        </h1>
+        <p class="mt-2 text-sm text-gray-500">
+            <%= products.length %> results found
+        </p>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <% if (products.length > 0) { %>
+            <% products.forEach(product => { %>
+                <div class="group relative bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                    <!-- Product Image -->
+                    <div class="aspect-w-4 aspect-h-3 bg-gray-200">
+                        <img src="<%= product.images[0] || '/images/placeholder.jpg' %>" 
+                             alt="<%= product.name %>"
+                             class="object-cover w-full h-full">
+                    </div>
+
+                    <!-- Product Info -->
+                    <div class="p-4">
+                        <!-- Category -->
+                        <p class="text-sm text-indigo-600 mb-1">
+                            <%= product.category ? product.category.name : 'Uncategorized' %>
+                        </p>
+
+                        <!-- Product Name -->
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                            <%= product.name %>
+                        </h3>
+
+                        <!-- Price -->
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <% if (product.discountPercentage > 0) { %>
+                                    <p class="text-lg font-bold text-gray-900">
+                                        ₹<%= locals.calculateDiscountedPrice(product.price, product.discountPercentage) %>
+                                        <span class="text-sm text-gray-500 line-through ml-2">
+                                            ₹<%= locals.formatPrice(product.price) %>
+                                        </span>
+                                    </p>
+                                    <p class="text-sm text-green-600">
+                                        <%= product.discountPercentage %>% off
+                                    </p>
+                                <% } else { %>
+                                    <p class="text-lg font-bold text-gray-900">
+                                        ₹<%= locals.formatPrice(product.price) %>
+                                    </p>
+                                <% } %>
+                            </div>
+                        </div>
+
+                        <!-- View Details Button -->
+                        <a href="/product/<%= product._id %>" 
+                           class="mt-4 block w-full text-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            <% }); %>
+        <% } else { %>
+            <div class="col-span-full text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No products found</h3>
+                <p class="mt-1 text-sm text-gray-500">Try adjusting your search terms or browse our categories.</p>
+                <div class="mt-6">
+                    <a href="/shop" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                        Browse All Products
+                    </a>
+                </div>
+            </div>
+        <% } %>
+    </div>
+</div>

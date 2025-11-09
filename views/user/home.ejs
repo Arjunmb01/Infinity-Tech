@@ -1,0 +1,203 @@
+<%- include('../partials/header') %>
+
+<main class="flex-grow pt-24">
+    <!-- Hero Section -->
+    <section class="relative bg-gradient-to-br from-gray-900 via-indigo-800 to-indigo-600 overflow-hidden">
+        <div class="absolute inset-0">
+            <img src="/images/hero-bg.jpg" alt="Hero Background" class="w-full h-full object-cover opacity-25 transform scale-110">
+        </div>
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 text-center">
+            <h1 class="text-5xl md:text-6xl font-bold text-white mb-6 tracking-tight fade-in drop-shadow-lg">Discover Next-Gen Gaming Laptops</h1>
+            <p class="text-xl md:text-2xl text-gray-200 mb-10 slide-up font-medium">Unleash unparalleled performance with our premium lineup</p>
+            <a href="/shop" class="inline-flex items-center px-8 py-4 text-lg font-semibold text-gray-900 bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg transform hover:scale-105">Explore Now
+                <svg class="ml-3 w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+            </a>
+        </div>
+    </section>
+
+    <!-- Featured Products Section -->
+    <section class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-4xl md:text-5xl font-bold text-center mb-16 text-gray-900 fade-in">Featured Products</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <% if (typeof featuredProducts !== 'undefined' && featuredProducts.length > 0) { %>
+                    <% featuredProducts.forEach(function(product) { %>
+                        <div class="bg-white rounded-2xl shadow-md card-hover overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                            <div class="relative">
+                                <a href="/product/<%= product._id %>">
+                                    <img src="<%= product.images[0] %>" alt="<%= product.name %>" class="w-full h-56 object-cover transition-transform duration-500 hover:scale-105">
+                                </a>
+                                <button class="wishlist-btn absolute top-4 right-4 bg-white p-2 rounded-full shadow-md hover:bg-yellow-400 hover:text-gray-900 transition-all" data-product-id="<%= product._id %>">
+                                    <svg class="h-6 w-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="p-6">
+                                <a href="/product/<%= product._id %>">
+                                    <h3 class="text-xl font-semibold text-gray-900 hover:text-indigo-600 transition-colors"><%= product.name %></h3>
+                                    <div class="flex items-center justify-between mt-3">
+                                        <div>
+                                            <% if (product.productOffer > 0 && product.salePrice >= 0) { %>
+                                                <span class="text-gray-500 line-through text-sm">₹<%= product.price.toFixed(2) %></span>
+                                                <span class="text-2xl font-bold text-indigo-600 ml-2">₹<%= Math.max(0, product.salePrice).toFixed(2) %></span>
+                                                <span class="text-sm text-green-500 ml-2"><%= product.productOffer %>% OFF</span>
+                                            <% } else { %>
+                                                <span class="text-2xl font-bold text-indigo-600">₹<%= Math.max(0, product.price).toFixed(2) %></span>
+                                            <% } %>
+                                        </div>
+                                        <span class="bg-yellow-100 text-yellow-700 text-xs font-semibold px-3 py-1 rounded-full">Featured</span>
+                                    </div>
+                                </a>
+                                <div class="flex space-x-3 mt-5">
+                                    <button class="add-to-cart-btn flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 py-3 rounded-lg font-semibold transition-all" data-product-id="<%= product._id %>">Add to Cart</button>
+                                    <button class="buy-now-btn flex-1 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 py-3 rounded-lg font-semibold transition-all shadow-md" data-product-id="<%= product._id %>">Buy Now</button>
+                                </div>
+                            </div>
+                        </div>
+                    <% }); %>
+                <% } else { %>
+                    <div class="col-span-full text-center text-gray-500 text-lg">No featured products available at the moment.</div>
+                <% } %>
+            </div>
+        </div>
+    </section>
+
+    <!-- New Arrivals Section -->
+    <section class="py-20 bg-gradient-to-b from-gray-100 to-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-4xl md:text-5xl font-bold text-center mb-16 text-gray-900 fade-in">New Arrivals</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <% if (typeof newArrivals !== 'undefined' && newArrivals.length > 0) { %>
+                    <% newArrivals.forEach(function(product) { %>
+                        <div class="bg-white rounded-2xl shadow-md card-hover overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                            <div class="relative">
+                                <a href="/product/<%= product._id %>">
+                                    <img src="<%= product.images[0] %>" alt="<%= product.name %>" class="w-full h-56 object-cover transition-transform duration-500 hover:scale-105">
+                                </a>
+                                <button class="wishlist-btn absolute top-4 right-4 bg-white p-2 rounded-full shadow-md hover:bg-yellow-400 hover:text-gray-900 transition-all" data-product-id="<%= product._id %>">
+                                    <svg class="h-6 w-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="p-6">
+                                <a href="/product/<%= product._id %>">
+                                    <h3 class="text-xl font-semibold text-gray-900 hover:text-indigo-600 transition-colors"><%= product.name %></h3>
+                                    <div class="flex items-center justify-between mt-3">
+                                        <div>
+                                            <% if (product.productOffer > 0 && product.salePrice >= 0) { %>
+                                                <span class="text-gray-500 line-through text-sm">₹<%= product.price.toFixed(2) %></span>
+                                                <span class="text-2xl font-bold text-indigo-600 ml-2">₹<%= Math.max(0, product.salePrice).toFixed(2) %></span>
+                                                <span class="text-sm text-green-500 ml-2"><%= product.productOffer %>% OFF</span>
+                                            <% } else { %>
+                                                <span class="text-2xl font-bold text-indigo-600">₹<%= Math.max(0, product.price).toFixed(2) %></span>
+                                            <% } %>
+                                        </div>
+                                        <span class="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">New</span>
+                                    </div>
+                                </a>
+                                <div class="flex space-x-3 mt-5">
+                                    <button class="add-to-cart-btn flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 py-3 rounded-lg font-semibold transition-all" data-product-id="<%= product._id %>">Add to Cart</button>
+                                    <button class="buy-now-btn flex-1 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 py-3 rounded-lg font-semibold transition-all shadow-md" data-product-id="<%= product._id %>">Buy Now</button>
+                                </div>
+                            </div>
+                        </div>
+                    <% }); %>
+                <% } else { %>
+                    <div class="col-span-full text-center text-gray-500 text-lg">No new arrivals available at the moment.</div>
+                <% } %>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Choose InfinityTech Section -->
+    <section class="py-20 bg-gradient-to-t from-gray-100 to-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-4xl md:text-5xl font-bold text-center mb-16 text-gray-900 fade-in">Why Choose InfinityTech</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+                <div class="text-center group">
+                    <div class="inline-block p-5 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 rounded-full shadow-lg mb-5 transition-transform duration-300 group-hover:scale-110">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-900">Free Shipping</h3>
+                    <p class="text-gray-600">On all orders over $999</p>
+                </div>
+                <div class="text-center group">
+                    <div class="inline-block p-5 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 rounded-full shadow-lg mb-5 transition-transform duration-300 group-hover:scale-110">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-900">Easy Returns</h3>
+                    <p class="text-gray-600">30-day return policy</p>
+                </div>
+                <div class="text-center group">
+                    <div class="inline-block p-5 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 rounded-full shadow-lg mb-5 transition-transform duration-300 group-hover:scale-110">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-900">2-Year Warranty</h3>
+                    <p class="text-gray-600">Extended coverage available</p>
+                </div>
+                <div class="text-center group">
+                    <div class="inline-block p-5 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 rounded-full shadow-lg mb-5 transition-transform duration-300 group-hover:scale-110">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-900">24/7 Support</h3>
+                    <p class="text-gray-600">Expert assistance anytime</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" x-data="{ slideIndex: 0 }">
+            <h2 class="text-4xl md:text-5xl font-bold text-center mb-16 text-gray-900 fade-in">What Our Customers Say</h2>
+            <div class="relative">
+                <div class="overflow-hidden">
+                    <div class="flex transition-transform duration-500" x-ref="slider" x-bind:style="`transform: translateX(-${slideIndex * 100}%);`">
+                        <div class="w-full flex-shrink-0">
+                            <div class="max-w-3xl mx-auto text-center bg-white p-8 rounded-2xl shadow-md">
+                                <img src="/images/testimonial1.jpg" alt="Customer" class="w-20 h-20 rounded-full mx-auto mb-6 object-cover shadow-md border-2 border-yellow-400">
+                                <p class="text-lg text-gray-700 mb-5">"The gaming laptop I purchased exceeded my expectations. The performance is incredible, and the customer service was exceptional!"</p>
+                                <div class="font-semibold text-gray-900 text-xl">John Doe</div>
+                                <div class="text-gray-500 text-sm">Professional Gamer</div>
+                            </div>
+                        </div>
+                        <div class="w-full flex-shrink-0">
+                            <div class="max-w-3xl mx-auto text-center bg-white p-8 rounded-2xl shadow-md">
+                                <img src="/images/testimonial2.jpg" alt="Customer" class="w-20 h-20 rounded-full mx-auto mb-6 object-cover shadow-md border-2 border-yellow-400">
+                                <p class="text-lg text-gray-700 mb-5">"Perfect laptop for my business needs. The build quality is outstanding, and the battery life is impressive!"</p>
+                                <div class="font-semibold text-gray-900 text-xl">Jane Smith</div>
+                                <div class="text-gray-500 text-sm">Business Executive</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button @click="slideIndex = slideIndex === 0 ? 1 : 0" class="absolute top-1/2 left-6 -translate-y-1/2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 p-3 rounded-full shadow-lg hover:from-yellow-500 hover:to-yellow-600 transition-all">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <button @click="slideIndex = slideIndex === 0 ? 1 : 0" class="absolute top-1/2 right-6 -translate-y-1/2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 p-3 rounded-full shadow-lg hover:from-yellow-500 hover:to-yellow-600 transition-all">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </section>
+</main>
+
+<%- include('../partials/footer') %>
+
+

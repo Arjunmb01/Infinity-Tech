@@ -1,0 +1,46 @@
+<div class="w-72 bg-white/5 text-white p-8 flex flex-col h-screen overflow-y-auto shadow-xl">
+    <div class="mb-12 text-center">
+      <img
+        id="sidebar-profile-image"
+        src="images/default-avatar.svg"
+        alt="Profile"
+        class="w-28 h-28 rounded-full mx-auto mb-6 object-cover border-4 border-white/20 shadow-md"
+      >
+      <h2 id="sidebar-profile-name" class="text-2xl font-bold"><%= user.name %></h2>
+      <p id="sidebar-profile-email" class="text-white/60 text-sm mt-2"><%= user.email %></p>
+    </div>
+    <nav>
+      <ul class="space-y-4">
+        <li class="sidebar-link bg-white/20 rounded-xl">
+          <a href="/profile" class="block p-4 flex items-center text-white font-semibold hover:bg-white/30 transition">
+            <i class="fas fa-user mr-4 text-indigo-300 w-6"></i>Profile
+          </a>
+        </li>
+        <li class="sidebar-link rounded-xl">
+          <a href="/address" class="block p-4 flex items-center text-white/80 hover:text-white hover:bg-white/20 transition">
+            <i class="fas fa-address-book mr-4 text-indigo-300 w-6"></i>Address Book
+          </a>
+        </li>
+        <li class="sidebar-link rounded-xl">
+          <a href="/orders" class="block p-4 flex items-center text-white/80 hover:text-white hover:bg-white/20 transition">
+            <i class="fas fa-shopping-cart mr-4 text-indigo-300 w-6"></i>Orders
+          </a>
+        </li>
+        <li class="sidebar-link rounded-xl">
+          <a href="/wallet" class="block p-4 flex items-center text-white/80 hover:text-white hover:bg-white/20 transition">
+            <i class="fas fa-wallet mr-4 text-indigo-300 w-6"></i>Wallet
+          </a>
+        </li>
+        <li class="sidebar-link rounded-xl">
+          <a href="/changePassword" class="block p-4 flex items-center text-white/80 hover:text-white hover:bg-white/20 transition">
+            <i class="fas fa-key mr-4 text-indigo-300 w-6"></i>Password
+          </a>
+        </li>
+        <li class="sidebar-link rounded-xl">
+          <a href="/logout" class="block p-4 flex items-center text-white/80 hover:text-white hover:bg-white/20 transition">
+            <i class="fas fa-sign-out-alt mr-4 text-indigo-300 w-6"></i>Logout
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>

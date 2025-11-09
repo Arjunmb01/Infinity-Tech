@@ -1,0 +1,340 @@
+<%- include('./partials/adminHeader.ejs') %>
+
+<style>
+    :root {
+        --sidebar-width: 16rem;
+        --primary-bg: #1e1e2f;
+        --secondary-bg: #2a2438;
+        --content-bg: #2d2d44;
+        --accent-start: #d4af37;
+        --accent-end: #f9e076;
+        --text-color: #e5e7eb;
+        --secondary-button: #4b5563;
+    }
+
+    .gradient-bg {
+        @apply bg-gradient-to-br from-[var(--primary-bg)] to-[var(--secondary-bg)] !important;
+    }
+
+    .glass-effect-dark {
+        @apply bg-[var(--content-bg)]/80 backdrop-blur-md border border-white/10;
+    }
+
+    .gradient-accent {
+        @apply bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)];
+    }
+
+    .pagination-container {
+        @apply mt-8 flex justify-center items-center gap-4;
+    }
+
+    .pagination-button {
+        @apply inline-flex items-center px-3 py-2 glass-effect-dark text-sm text-white hover:bg-[var(--secondary-bg)]/50 transition-all duration-300 border-r border-white/10;
+    }
+
+    .pagination-button.active {
+        @apply bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white border-none;
+    }
+
+    .pagination-button:disabled {
+        @apply opacity-50 cursor-not-allowed hover:bg-[var(--content-bg)];
+    }
+
+    .flash-message {
+        @apply px-4 py-2 rounded-lg mt-4 text-center glass-effect-dark;
+    }
+    .flash-success {
+        @apply bg-green-500/20 text-green-400 border-green-500/20;
+    }
+    .flash-error {
+        @apply bg-red-500/20 text-red-400 border-red-500/20;
+    }
+
+    tr:hover {
+        @apply bg-[var(--content-bg)]/50;
+    }
+
+    main {
+        margin-left: var(--sidebar-width, 16rem);
+        width: calc(100% - var(--sidebar-width, 16rem));
+        min-height: 100vh;
+    }
+
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: var(--sidebar-width, 16rem);
+        z-index: 100;
+        animation: slideIn 0.5s ease-out forwards;
+    }
+
+    @keyframes slideIn {
+        from { transform: translateX(-100%); }
+        to { transform: translateX(0); }
+    }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in-up {
+        animation: fadeInUp 0.8s ease-out forwards;
+    }
+    .animation-delay-200 { animation-delay: 0.2s; }
+    .animation-delay-400 { animation-delay: 0.4s; }
+
+    .golden-button {
+        @apply gradient-accent text-white px-6 py-2 rounded-lg shadow-lg hover:scale-105 transition-all duration-300;
+    }
+
+    .status-select {
+        @apply px-4 py-2 bg-[var(--content-bg)] border border-white/10 rounded-lg text-[var(--text-color)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-start)] focus:border-transparent transition-all;
+    }
+    .status-select option {
+        color: #000000;
+    }
+</style>
+
+<div class="flex min-h-screen gradient-bg">
+    <%- include('./partials/adminSidebar.ejs') %>
+    <main class="flex-1 p-4 lg:p-8">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8 animate-fade-in-up">
+            <h1 class="text-3xl font-extrabold bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] bg-clip-text text-transparent tracking-tight">Orders Management</h1>
+            <button id="viewAllBtn" class="golden-button flex items-center space-x-2">
+                <span>View All</span>
+            </button>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="glass-effect-dark rounded-xl shadow-xl p-6 mb-6 animate-fade-in-up animation-delay-200">
+            <form action="/admin/orders" method="GET" class="flex flex-wrap gap-4">
+                <div class="flex-1 min-w-[250px]">
+                    <input type="text" name="search" value="<%= filters.search || '' %>" placeholder="Order ID or Customer"
+                        class="w-full px-4 py-2 bg-[var(--content-bg)] border border-white/10 rounded-lg text-[var(--text
+
+-color)] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--accent-start)] focus:border-transparent transition-all">
+                </div>
+                <div class="w-48">
+                    <select name="status" class="w-full status-select bg-[var(--content-bg)] border border-white/10 rounded-lg text-[var(--text-color)]">
+                        <option value="All" <%= filters.status === 'All' || !filters.status ? 'selected' : '' %>>All</option>
+                        <option value="Pending" <%= filters.status === 'Pending' ? 'selected' : '' %>>Pending</option>
+                        <option value="Processing" <%= filters.status === 'Processing' ? 'selected' : '' %>>Processing</option>
+                        <option value="Shipped" <%= filters.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
+                        <option value="Out for Delivery" <%= filters.status === 'Out for Delivery' ? 'selected' : '' %>>Out for Delivery</option>
+                        <option value="Delivered" <%= filters.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+                        <option value="Cancelled" <%= filters.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                    </select>
+                </div>
+                <div class="w-48">
+                    <input type="date" name="startDate" value="<%= filters.startDate || '' %>"
+                        class="w-full px-4 py-2 bg-[var(--content-bg)] border border-white/10 rounded-lg text-[var(--text-color)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-start)] focus:border-transparent transition-all">
+                </div>
+                <div class="w-48">
+                    <input type="date" name="endDate" value="<%= filters.endDate || '' %>"
+                        class="w-full px-4 py-2 bg-[var(--content-bg)] border border-white/10 rounded-lg text-[var(--text-color)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-start)] focus:border-transparent transition-all">
+                </div>
+                <button type="submit" class="golden-button flex items-center space-x-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <span>Apply Filters</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Orders Table -->
+        <div class="glass-effect-dark rounded-xl shadow-xl animate-fade-in-up animation-delay-400">
+            <div class="p-6">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="text-[var(--text-color)] border-b border-white/10">
+                                <th class="px-6 py-3 text-left">Order ID</th>
+                                <th class="px-6 py-3 text-left">Customer</th>
+                                <th class="px-6 py-3 text-left">Date</th>
+                                <th class="px-6 py-3 text-left">Products</th>
+                                <th class="px-6 py-3 text-left">Total</th>
+                                <th class="px-6 py-3 text-left">Status</th>
+                                <th class="px-6 py-3 text-left">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/10">
+                            <% if (orders && orders.length > 0) { %>
+                                <% orders.forEach(order => { %>
+                                    <tr class="text-[var(--text-color)] hover:bg-[var(--content-bg)]/50 transition-colors">
+                                        <td class="px-6 py-4"><%= order._id.toString().slice(-6) %></td>
+                                        <td class="px-6 py-4"><%= order.user.name %> (<%= order.user.email %>)</td>
+                                        <td class="px-6 py-4"><%= new Date(order.createdAt).toLocaleDateString() %></td>
+                                        <td class="px-6 py-4">
+                                            <ul class="space-y-3">
+                                                <% order.products.forEach((product, index) => { %>
+                                                    <li class="flex items-center justify-between">
+                                                        <span>
+                                                            <%= product.productId.name %> (Qty: <%= product.quantity %>) - 
+                                                            <span class="<%= product.status === 'Cancelled' ? 'text-red-400' : product.status.includes('Return') ? 'text-yellow-400' : 'text-green-400' %>">
+                                                                <%= product.status %>
+                                                            </span>
+                                                        </span>
+                                                    </li>
+                                                <% }); %>
+                                            </ul>
+                                        </td>
+                                        <td class="px-6 py-4">₹<%= order.orderAmount.toFixed(2) %></td>
+                                        <td class="px-6 py-4">
+                                            <select class="status-select bg-[var(--content-bg)] border border-white/10 rounded-lg text-[var(--text-color)]" data-order-id="<%= order._id %>"
+                                                <%= order.status === 'Cancelled' ? 'disabled' : '' %>>
+                                                <option value="Pending" <%= order.status === 'Pending' ? 'selected' : '' %>>Pending</option>
+                                                <option value="Processing" <%= order.status === 'Processing' ? 'selected' : '' %>>Processing</option>
+                                                <option value="Shipped" <%= order.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
+                                                <option value="Out for Delivery" <%= order.status === 'Out for Delivery' ? 'selected' : '' %>>Out for Delivery</option>
+                                                <option value="Delivered" <%= order.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+                                                <option value="Cancelled" <%= order.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                                            </select>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <a href="/admin/orders/<%= order._id %>" class="text-[var(--accent-start)] hover:text-[var(--accent-end)] transition-colors">View</a>
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="7" class="px-6 py-4 text-center text-gray-400">No orders found</td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <% if (pagination.totalPages > 1) { %>
+                    <div class="pagination-container">
+                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                            <!-- Previous Button -->
+                            <% if (pagination.hasPrevPage) { %>
+                                <a href="/admin/orders?page=<%= pagination.currentPage - 1 %>&limit=9&<%= new URLSearchParams(filters).toString() %>" 
+                                   class="pagination-button rounded-l-md">
+                                    <span class="sr-only">Previous</span>
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            <% } else { %>
+                                <span class="pagination-button rounded-l-md opacity-50 cursor-not-allowed">
+                                    <i class="fas fa-chevron-left"></i>
+                                </span>
+                            <% } %>
+                            
+                            <!-- Page Numbers -->
+                            <% let startPage = Math.max(1, pagination.currentPage - 2); %>
+                            <% let endPage = Math.min(pagination.totalPages, startPage + 4); %>
+                            <% startPage = Math.max(1, endPage - 4); %>
+
+                            <% if (startPage > 1) { %>
+                                <a href="/admin/orders?page=1&limit=9&<%= new URLSearchParams(filters).toString() %>" 
+                                   class="pagination-button">1</a>
+                                <% if (startPage > 2) { %>
+                                    <span class="pagination-button">...</span>
+                                <% } %>
+                            <% } %>
+                                
+                            <% for(let i = startPage; i <= endPage; i++) { %>
+                                <a href="/admin/orders?page=<%= i %>&limit=9&<%= new URLSearchParams(filters).toString() %>" 
+                                   class="pagination-button <%= pagination.currentPage === i ? 'active' : '' %>">
+                                    <%= i %>
+                                </a>
+                            <% } %>
+                            
+                            <% if (endPage < pagination.totalPages) { %>
+                                <% if (endPage < pagination.totalPages - 1) { %>
+                                    <span class="pagination-button">...</span>
+                                <% } %>
+                                <a href="/admin/orders?page=<%= pagination.totalPages %>&limit=9&<%= new URLSearchParams(filters).toString() %>" 
+                                   class="pagination-button">
+                                    <%= pagination.totalPages %>
+                                </a>
+                            <% } %>
+                            
+                            <!-- Next Button -->
+                            <% if (pagination.hasNextPage) { %>
+                                <a href="/admin/orders?page=<%= pagination.currentPage + 1 %>&limit=9&<%= new URLSearchParams(filters).toString() %>" 
+                                   class="pagination-button rounded-r-md">
+                                    <span class="sr-only">Next</span>
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            <% } else { %>
+                                <span class="pagination-button rounded-r-md opacity-50 cursor-not-allowed">
+                                    <i class="fas fa-chevron-right"></i>
+                                </span>
+                            <% } %>
+                        </nav>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </main>
+</div>
+
+<%- include('./partials/adminFooter.ejs') %>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const sidebar = document.querySelector('.sidebar');
+        const main = document.querySelector('main');
+        const updateHeight = () => {
+            const mainHeight = main.offsetHeight;
+            sidebar.style.height = `${Math.max(mainHeight, window.innerHeight)}px`;
+        };
+        updateHeight();
+        window.addEventListener('resize', updateHeight);
+
+        // Status Update
+        document.querySelectorAll('.status-select').forEach(select => {
+            select.addEventListener('change', async (e) => {
+                const orderId = e.target.dataset.orderId;
+                const newStatus = e.target.value;
+
+                const result = await Swal.fire({
+                    title: 'Update Order Status',
+                    text: `Are you sure you want to change the status to ${newStatus}?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d4af37',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, Update'
+                });
+
+                if (result.isConfirmed) {
+                    try {
+                        const response = await fetch(`/admin/orders/${orderId}/toggle-status`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ status: newStatus })
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            Swal.fire('Success', 'Order status updated successfully', 'success').then(() => window.location.reload());
+                        } else {
+                            throw new Error(data.message || 'Failed to update status');
+                        }
+                    } catch (error) {
+                        Swal.fire('Error', error.message, 'error');
+                        e.target.value = e.target.dataset.currentStatus;
+                    }
+                } else {
+                    e.target.value = e.target.dataset.currentStatus;
+                }
+            });
+            select.dataset.currentStatus = select.value;
+        });
+
+        // View All Button
+        document.getElementById('viewAllBtn').addEventListener('click', () => {
+            const url = new URL(window.location.href);
+            url.searchParams.set('limit', 'all');
+            window.location.href = url.toString();
+        });
+    });
+</script>

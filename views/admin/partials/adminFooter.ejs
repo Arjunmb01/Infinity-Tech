@@ -1,0 +1,227 @@
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Sidebar Toggle for Mobile
+    const sidebar = document.querySelector('.sidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('-translate-x-full'));
+    }
+
+    // Close sidebar on outside click (mobile)
+    document.addEventListener('click', (e) => {
+        if (window.innerWidth < 768 && !sidebar.contains(e.target) && !sidebarToggle?.contains(e.target)) {
+            sidebar.classList.add('-translate-x-full');
+        }
+    });
+
+    // Uniform Button Styles
+    document.querySelectorAll('button:not(.gradient-accent)').forEach(btn => {
+        btn.classList.add('bg-[var(--secondary-button)]', 'text-[var(--text-color)]', 'px-4', 'py-2', 'rounded-lg', 'hover:bg-gray-500', 'transition-all', 'duration-300');
+    });
+
+    // Profile Dropdown Toggle
+    const profileDropdown = document.getElementById('profileDropdown');
+    const profileMenu = document.getElementById('profileMenu');
+    if (profileDropdown && profileMenu) {
+        profileDropdown.addEventListener('click', () => profileMenu.classList.toggle('hidden'));
+        document.addEventListener('click', (e) => {
+            if (!profileDropdown.contains(e.target) && !profileMenu.contains(e.target)) {
+                profileMenu.classList.add('hidden');
+            }
+        });
+    }
+
+    // Image Cropper Logic (unchanged, just ensuring button styles apply)
+    document.addEventListener('DOMContentLoaded', function() {
+        const imageInput = document.getElementById('images');
+        const previewContainer = document.getElementById('imagePreviewContainer');
+        let cropper = null;
+        let croppedImages = [];
+
+        const cropperModal = document.createElement('div');
+        cropperModal.innerHTML = `
+            <div id="cropperModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center">
+                <div class="glass-effect-dark p-6 rounded-lg max-w-4xl w-full">
+                    <div class="mb-4 flex justify-between items-center">
+                        <h3 class="text-xl font-semibold text-[var(--text-color)]">Crop Image</h3>
+                        <div class="flex space-x-4">
+                            <select id="aspectRatio" class="bg-[var(--content-bg)] text-[var(--text-color)] px-3 py-2 rounded-lg">
+                                <option value="NaN">Free</option>
+                                <option value="1">1:1 (Square)</option>
+                                <option value="1.33333">4:3</option>
+                                <option value="1.77777">16:9</option>
+                                <option value="0.66666">2:3</option>
+                            </select>
+                            <div class="flex space-x-2">
+                                <button id="rotateLeft" class="p-2 bg-[var(--secondary-button)] text-[var(--text-color)] rounded hover:bg-gray-500">↺</button>
+                                <button id="rotateRight" class="p-2 bg-[var(--secondary-button)] text-[var(--text-color)] rounded hover:bg-gray-500">↻</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="relative h-96">
+                        <img id="cropperImage" class="max-h-full mx-auto">
+                    </div>
+                    <div class="mt-4 flex justify-between items-center">
+                        <div class="text-[var(--text-color)] text-sm">
+                            <span>Current Size: </span><span id="cropSize">0 x 0</span>
+                        </div>
+                        <div class="flex space-x-4">
+                            <button id="cancelCrop" class="gradient-accent text-white">Cancel</button>
+                            <button id="completeCrop" class="gradient-accent text-white">Crop Image</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(cropperModal);
+
+        const modal = document.getElementById('cropperModal');
+        const cropperImage = document.getElementById('cropperImage');
+        const cancelCrop = document.getElementById('cancelCrop');
+        const completeCrop = document.getElementById('completeCrop');
+        const aspectRatioSelect = document.getElementById('aspectRatio');
+        const rotateLeft = document.getElementById('rotateLeft');
+        const rotateRight = document.getElementById('rotateRight');
+        const cropSize = document.getElementById('cropSize');
+
+        let currentImageIndex = 0;
+        let pendingImages = [];
+
+        function initCropper(image) {
+            return new Cropper(image, {
+                aspectRatio: NaN,
+                viewMode: 1,
+                background: false,
+                responsive: true,
+                guides: true,
+                highlight: false,
+                autoCropArea: 1,
+                cropBoxResizable: true,
+                dragMode: 'move',
+                ready() { updateCropSize(); },
+                cropend() { updateCropSize(); },
+                crop() { updateCropSize(); }
+            });
+        }
+
+        function updateCropSize() {
+            if (cropper) {
+                const data = cropper.getCropBoxData();
+                cropSize.textContent = `${Math.round(data.width)}px x ${Math.round(data.height)}px`;
+            }
+        }
+
+        if (imageInput) {
+            imageInput.addEventListener('change', function(e) {
+                pendingImages = Array.from(e.target.files);
+                if (pendingImages.length > 0) processNextImage();
+            });
+        }
+
+        aspectRatioSelect?.addEventListener('change', (e) => cropper?.setAspectRatio(parseFloat(e.target.value)));
+        rotateLeft?.addEventListener('click', () => cropper?.rotate(-90));
+        rotateRight?.addEventListener('click', () => cropper?.rotate(90));
+
+        function processNextImage() {
+            if (currentImageIndex < pendingImages.length) {
+                const file = pendingImages[currentImageIndex];
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    cropperImage.src = e.target.result;
+                    modal.classList.remove('hidden');
+                    if (cropper) cropper.destroy();
+                    cropper = initCropper(cropperImage);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                displayCroppedImages();
+            }
+        }
+
+        cancelCrop?.addEventListener('click', () => {
+            modal.classList.add('hidden');
+            if (cropper) { cropper.destroy(); cropper = null; }
+        });
+
+        completeCrop?.addEventListener('click', () => {
+            if (cropper) {
+                cropper.getCroppedCanvas({ maxWidth: 4096, maxHeight: 4096, fillColor: '#fff' }).toBlob((blob) => {
+                    const croppedFile = new File([blob], pendingImages[currentImageIndex].name, { type: 'image/jpeg', lastModified: new Date().getTime() });
+                    croppedImages.push(croppedFile);
+                    currentImageIndex++;
+                    modal.classList.add('hidden');
+                    cropper.destroy();
+                    cropper = null;
+                    processNextImage();
+                }, 'image/jpeg', 0.9);
+            }
+        });
+
+        function displayCroppedImages() {
+            if (previewContainer) {
+                previewContainer.innerHTML = '';
+                croppedImages.forEach((file, index) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const preview = document.createElement('div');
+                        preview.className = 'relative';
+                        preview.innerHTML = `
+                            <img src="${e.target.result}" class="w-full h-32 object-cover rounded-lg">
+                            <button type="button" data-index="${index}" class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        `;
+                        previewContainer.appendChild(preview);
+                        preview.querySelector('button').addEventListener('click', function() {
+                            croppedImages.splice(this.dataset.index, 1);
+                            displayCroppedImages();
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+        }
+
+        const form = document.getElementById('addProductForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                formData.delete('images');
+                croppedImages.forEach((file) => formData.append('images', file));
+                fetch('/admin/addProduct', { method: 'POST', body: formData })
+                    .then(response => response.json())
+                    .then(data => { if (data.success) window.location.href = '/admin/products'; else console.error('Error:', data.message); })
+                    .catch(error => console.error('Error:', error));
+            });
+        }
+    });
+
+    // Delete Product Function
+    function deleteProduct(productId) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This product will be deleted. This action cannot be undone.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!',
+            background: '#1e1e2f',
+            color: '#e5e7eb'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/admin/deleteProduct/${productId}`;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    }
+</script>
+</body>
+</html>

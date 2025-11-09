@@ -1,0 +1,81 @@
+<!-- adminHeader.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InfinityTech Admin - <%= typeof title !== 'undefined' ? title : 'Dashboard' %></title>
+    
+    <!-- External Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.42.0/apexcharts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://kit.fontawesome.com/yourkit.js" crossorigin="anonymous"></script>
+
+    <style>
+        :root {
+            --sidebar-width: 16rem;
+            --primary-bg: #1e1e2f; /* Dark blue-gray */
+            --secondary-bg: #2a2438; /* Deep purple-gray */
+            --content-bg: #2d2d44; /* Lighter dark blue for content */
+            --accent-start: #d4af37; /* Rich Gold */
+            --accent-end: #f9e076;   /* Light Yellow */
+            --text-color: #e5e7eb; /* Light gray for text */
+            --secondary-button: #4b5563; /* Gray-600 for secondary buttons */
+        }
+    
+        /* Gradient Background */
+        .gradient-bg {
+            @apply bg-gradient-to-br from-[var(--primary-bg)] to-[var(--secondary-bg)] !important;
+        }
+    
+        /* Glass Effect for Content */
+        .glass-effect-dark {
+            @apply bg-[var(--content-bg)]/80 backdrop-blur-md border border-white/10;
+        }
+    
+        /* Gradient Accent for Buttons */
+        .gradient-accent {
+            @apply bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)];
+        }
+    
+        /* Typography and Base Styles */
+        body {
+            @apply font-sans text-[var(--text-color)] min-h-screen m-0 p-0 bg-[var(--primary-bg)] !important;
+        }
+    
+        /* Custom Animations */
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+    
+        .animate-gradient {
+            background-size: 200% 200%;
+            animation: gradientAnimation 15s ease infinite;
+        }
+    
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    
+        .animate-fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+    
+        .animation-delay-200 { animation-delay: 0.2s; }
+        .animation-delay-400 { animation-delay: 0.4s; }
+        .animation-delay-600 { animation-delay: 0.6s; }
+    </style>
+
+</head>
+<body class="gradient-bg animate-gradient" style="background: linear-gradient(to bottom right, #1e1e2f, #2a2438) !important;">

@@ -1,0 +1,28 @@
+<!-- adminSidebar.ejs -->
+<div class="sidebar fixed top-0 left-0 h-full w-64 md:w-[var(--sidebar-width)] bg-[var(--primary-bg)] z-50 transition-transform duration-300 md:translate-x-0 -translate-x-full shadow-lg">
+    <div class="flex flex-col h-full text-[var(--text-color)]">
+        <div class="flex items-center justify-start p-6 border-b border-white/10">
+            <span class="text-3xl font-extrabold bg-gradient-to-r from-[#d4af37] to-[#f9e076] bg-clip-text text-transparent tracking-tight ">InfinityTech</span>
+        </div>
+        
+        <nav class="flex-1 space-y-2 p-4 overflow-y-auto">
+            <% const navItems = [
+                { href: '/admin/dashboard', icon: 'fa-home', label: 'Dashboard', active: (typeof path !== 'undefined' && path === '/admin/dashboard') },
+                { href: '/admin/products', icon: 'fa-box', label: 'Products', active: (typeof path !== 'undefined' && path.includes('/admin/product')) },
+                { href: '/admin/categories', icon: 'fa-tags', label: 'Categories', active: (typeof path !== 'undefined' && path.includes('/admin/categor')) },
+                { href: '/admin/users', icon: 'fa-users', label: 'Customers', active: (typeof path !== 'undefined' && path === '/admin/users') },
+                { href: '/admin/orders', icon: 'fa-shopping-bag', label: 'Orders', active: (typeof path !== 'undefined' && path === '/admin/orders') },
+                { href: '/admin/return/requests', icon: 'fa-undo', label: 'Return Orders', active: (typeof path !== 'undefined' && path === '/admin/return/requests') },
+                { href: '/admin/offers', icon: 'fa-percentage', label: 'Offer', active: (typeof path !== 'undefined' && path === '/admin/offers') },
+                { href: '/admin/coupons', icon: 'fa-ticket-alt', label: 'Coupon', active: (typeof path !== 'undefined' && path === '/admin/coupons') },
+                { href: '/admin/logout', icon: 'fa-sign-out-alt', label: 'Logout', active: (typeof path !== 'undefined' && path === '/admin/logout') }
+            ]; %>
+            <% navItems.forEach(item => { %>
+                <a href="<%= item.href %>" class="flex items-center py-2.5 px-4 rounded transition duration-300 group <%= item.active ? 'gradient-accent text-white scale-105' : 'text-[var(--text-color)] hover:bg-[var(--secondary-bg)] hover:text-white hover:scale-105' %>">
+                    <i class="fas <%= item.icon %> w-6 transition-transform duration-300 group-hover:rotate-12"></i>
+                    <span class="ml-3"><%= item.label %></span>
+                </a>
+            <% }); %>
+        </nav>
+    </div>
+</div>

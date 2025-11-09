@@ -1,0 +1,375 @@
+<!-- offers.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InfinityTech Admin - Offer Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --sidebar-width: 16rem;
+            --primary-bg: #1e1e2f; /* Dark blue-gray */
+            --secondary-bg: #2a2438; /* Deep purple-gray */
+            --content-bg: #2d2d44; /* Lighter dark blue for content */
+            --accent-start: #d4af37; /* Rich Gold */
+            --accent-end: #f9e076;   /* Light Yellow */
+            --text-color: #e5e7eb; /* Light gray for text */
+            --secondary-button: #4b5563; /* Gray-600 for secondary buttons */
+        }
+
+        /* Gradient Background */
+        .gradient-bg {
+            @apply bg-gradient-to-br from-[var(--primary-bg)] to-[var(--secondary-bg)] !important;
+        }
+
+        /* Glass Effect for Content */
+        .glass-effect-dark {
+            @apply bg-[var(--content-bg)]/80 backdrop-blur-md border border-white/10;
+        }
+
+        /* Golden Yellow Gradient for Buttons */
+        .golden-button {
+            @apply bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white px-6 py-2 rounded-lg shadow-lg hover:scale-105 transition-all duration-300;
+        }
+
+        /* Typography and Base Styles */
+        body {
+            @apply font-sans text-[var(--text-color)] min-h-screen m-0 p-0 bg-[var(--primary-bg)] !important;
+        }
+
+        /* Custom Animations */
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+
+        .animate-gradient {
+            background-size: 200% 200%;
+            animation: gradientAnimation 15s ease infinite;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        .animation-delay-200 { animation-delay: 0.2s; }
+        .animation-delay-400 { animation-delay: 0.4s; }
+
+        /* Tab Styles */
+        .tab-button {
+            @apply inline-block p-4 border-b-2 rounded-t-lg text-[var(--text-color)] hover:text-[var(--accent-start)];
+        }
+        .tab-button.active {
+            @apply text-[var(--accent-start)] border-[var(--accent-start)];
+        }
+
+        /* Table Styles */
+        tr:hover {
+            @apply bg-[var(--content-bg)]/50;
+        }
+    </style>
+</head>
+
+<body class="gradient-bg animate-gradient" style="background: linear-gradient(to bottom right, #1e1e2f, #2a2438) !important;">
+    <!-- Sidebar -->
+    <div class="sidebar fixed top-0 left-0 h-full w-64 md:w-[var(--sidebar-width)] bg-[var(--primary-bg)] z-50 transition-transform duration-300 md:translate-x-0 -translate-x-full shadow-lg">
+        <div class="flex flex-col h-full text-[var(--text-color)]">
+            <div class="flex items-center justify-start p-6 border-b border-white/10">
+                <span class="text-2xl font-extrabold bg-gradient-to-r from-[#d4af37] to-[#f9e076] bg-clip-text text-transparent tracking-tight ">InfinityTech</span>
+            </div>
+            
+            <nav class="flex-1 space-y-2 p-4 overflow-y-auto">
+                <% const navItems = [
+                    { href: '/admin/dashboard', icon: 'fa-home', label: 'Dashboard', active: (typeof path !== 'undefined' && path === '/admin/dashboard') },
+                    { href: '/admin/products', icon: 'fa-box', label: 'Products', active: (typeof path !== 'undefined' && path.includes('/admin/product')) },
+                    { href: '/admin/categories', icon: 'fa-tags', label: 'Categories', active: (typeof path !== 'undefined' && path.includes('/admin/categor')) },
+                    { href: '/admin/users', icon: 'fa-users', label: 'Customers', active: (typeof path !== 'undefined' && path === '/admin/users') },
+                    { href: '/admin/orders', icon: 'fa-shopping-bag', label: 'Orders', active: (typeof path !== 'undefined' && path === '/admin/orders') },
+                    { href: '/admin/return/requests', icon: 'fa-undo', label: 'Return Orders', active: (typeof path !== 'undefined' && path === '/admin/return/requests') },
+                    { href: '/admin/offers', icon: 'fa-percentage', label: 'Offer', active: (typeof path !== 'undefined' && path === '/admin/offers') },
+                    { href: '/admin/coupons', icon: 'fa-ticket-alt', label: 'Coupon', active: (typeof path !== 'undefined' && path === '/admin/coupons') },
+                    { href: '/admin/logout', icon: 'fa-sign-out-alt', label: 'Logout', active: (typeof path !== 'undefined' && path === '/admin/logout') }
+                ]; %>
+                <% navItems.forEach(item => { %>
+                    <a href="<%= item.href %>" class="flex items-center py-2.5 px-4 rounded transition duration-300 group <%= item.active ? 'golden-button text-white scale-105' : 'text-[var(--text-color)] hover:bg-[var(--secondary-bg)] hover:text-white hover:scale-105' %>">
+                        <i class="fas <%= item.icon %> w-6 transition-transform duration-300 group-hover:rotate-12"></i>
+                        <span class="ml-3"><%= item.label %></span>
+                    </a>
+                <% }); %>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col overflow-hidden ml-0 md:ml-[var(--sidebar-width)]">
+        <main class="flex-1 overflow-x-hidden overflow-y-auto p-6">
+            <!-- Header Section -->
+            <div class="mb-8 animate-fade-in-up">
+                <h1 class="text-3xl font-bold golden-button bg-clip-text text-transparent">Offer Management</h1>
+                <p class="text-gray-400 mt-2">Manage your product and category offers</p>
+            </div>
+
+            <!-- Add New Offer Button -->
+            <div class="mb-6 animate-fade-in-up animation-delay-200">
+                <a href="/admin/offers/add" class="golden-button inline-flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Add New Offer
+                </a>
+            </div>
+
+            <!-- Tabs Container -->
+            <div class="glass-effect-dark rounded-lg shadow-lg overflow-hidden animate-fade-in-up animation-delay-400">
+                <!-- Tabs -->
+                <div class="border-b border-white/10">
+                    <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" role="tablist">
+                        <li class="mr-2" role="presentation">
+                            <button class="tab-button active" id="product-tab" data-tabs-target="#product-offers" type="button" role="tab" aria-selected="true">
+                                Product Offers
+                            </button>
+                        </li>
+                        <li class="mr-2" role="presentation">
+                            <button class="tab-button" id="category-tab" data-tabs-target="#category-offers" type="button" role="tab" aria-selected="false">
+                                Category Offers
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Tab Contents -->
+                <div id="tabContent">
+                    <!-- Product Offers Tab -->
+                    <div class="p-4 rounded-lg" id="product-offers" role="tabpanel">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left text-[var(--text-color)]">
+                                <thead class="text-xs uppercase bg-[var(--secondary-bg)] text-[var(--text-color)]">
+                                    <tr>
+                                        <th class="px-6 py-3">Name</th>
+                                        <th class="px-6 py-3">Discount</th>
+                                        <th class="px-6 py-3">Products</th>
+                                        <th class="px-6 py-3">Valid Until</th>
+                                        <th class="px-6 py-3">Status</th>
+                                        <th class="px-6 py-3">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% offers.forEach(offer => { %>
+                                        <% if (offer.products && offer.products.length > 0) { %>
+                                            <tr class="border-b border-white/10 hover:bg-[var(--content-bg)]/50">
+                                                <td class="px-6 py-4 font-medium">
+                                                    <%= offer.name %>
+                                                    <p class="text-xs text-gray-500"><%= offer.description %></p>
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <%= offer.discountValue %><%= offer.discountType === 'percentage' ? '%' : ' INR' %>
+                                                    <% if (offer.maxDiscount) { %>
+                                                        <p class="text-xs text-gray-500">Max: ₹<%= offer.maxDiscount %></p>
+                                                    <% } %>
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <%= offer.products.length %> products
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <%= new Date(offer.endDate).toLocaleDateString() %>
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <span class="<%= offer.isActive ? 'bg-green-500/20 text-green-400 border-green-500/20' : 'bg-red-500/20 text-red-400 border-red-500/20' %> text-xs font-medium px-2.5 py-0.5 rounded border">
+                                                        <%= offer.isActive ? 'Active' : 'Inactive' %>
+                                                    </span>
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <div class="flex space-x-2">
+                                                        <a href="/admin/offers/edit/<%= offer._id %>" class="text-[var(--accent-start)] hover:text-[var(--accent-end)]">Edit</a>
+                                                        <button onclick="toggleOfferStatus('<%= offer._id %>', <%= offer.isActive %>)" class="text-red-400 hover:text-red-500">
+                                                            <%= offer.isActive ? 'Deactivate' : 'Activate' %>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        <% } %>
+                                    <% }) %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Category Offers Tab -->
+                    <div class="hidden p-4 rounded-lg" id="category-offers" role="tabpanel">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left text-[var(--text-color)]">
+                                <thead class="text-xs uppercase bg-[var(--secondary-bg)] text-[var(--text-color)]">
+                                    <tr>
+                                        <th class="px-6 py-3">Name</th>
+                                        <th class="px-6 py-3">Discount</th>
+                                        <th class="px-6 py-3">Categories</th>
+                                        <th class="px-6 py-3">Valid Until</th>
+                                        <th class="px-6 py-3">Status</th>
+                                        <th class="px-6 py-3">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% offers.forEach(offer => { %>
+                                        <% if (offer.categories && offer.categories.length > 0) { %>
+                                            <tr class="border-b border-white/10 hover:bg-[var(--content-bg)]/50">
+                                                <td class="px-6 py-4 font-medium">
+                                                    <%= offer.name %>
+                                                    <p class="text-xs text-gray-500"><%= offer.description %></p>
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <%= offer.discountValue %><%= offer.discountType === 'percentage' ? '%' : ' INR' %>
+                                                    <% if (offer.maxDiscount) { %>
+                                                        <p class="text-xs text-gray-500">Max: ₹<%= offer.maxDiscount %></p>
+                                                    <% } %>
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <%= offer.categories.length %> categories
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <%= new Date(offer.endDate).toLocaleDateString() %>
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <span class="<%= offer.isActive ? 'bg-green-500/20 text-green-400 border-green-500/20' : 'bg-red-500/20 text-red-400 border-red-500/20' %> text-xs font-medium px-2.5 py-0.5 rounded border">
+                                                        <%= offer.isActive ? 'Active' : 'Inactive' %>
+                                                    </span>
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <div class="flex space-x-2">
+                                                        <a href="/admin/offers/edit/<%= offer._id %>" class="text-[var(--accent-start)] hover:text-[var(--accent-end)]">Edit</a>
+                                                        <button onclick="toggleOfferStatus('<%= offer._id %>', <%= offer.isActive %>)" class="text-red-400 hover:text-red-500">
+                                                            <%= offer.isActive ? 'Deactivate' : 'Activate' %>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        <% } %>
+                                    <% }) %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Sidebar Toggle for Mobile
+        const sidebar = document.querySelector('.sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('-translate-x-full'));
+        }
+
+        // Close sidebar on outside click (mobile)
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth < 768 && !sidebar.contains(e.target) && !sidebarToggle?.contains(e.target)) {
+                sidebar.classList.add('-translate-x-full');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize tabs
+            const tabElements = [
+                {
+                    id: 'product-tab',
+                    triggerEl: document.querySelector('#product-tab'),
+                    targetEl: document.querySelector('#product-offers')
+                },
+                {
+                    id: 'category-tab',
+                    triggerEl: document.querySelector('#category-tab'),
+                    targetEl: document.querySelector('#category-offers')
+                }
+            ];
+
+            // Show first tab by default
+            tabElements[0].targetEl.classList.remove('hidden');
+            tabElements[0].triggerEl.classList.add('active');
+
+            // Add click handlers
+            tabElements.forEach(tab => {
+                tab.triggerEl.addEventListener('click', () => {
+                    tabElements.forEach(t => {
+                        t.targetEl.classList.add('hidden');
+                        t.triggerEl.classList.remove('active');
+                    });
+                    tab.targetEl.classList.remove('hidden');
+                    tab.triggerEl.classList.add('active');
+                });
+            });
+
+            // Animate elements
+            const animateElements = () => {
+                const elements = document.querySelectorAll('.animate-fade-in-up');
+                elements.forEach((element, index) => {
+                    element.style.animationDelay = `${index * 0.2}s`;
+                });
+            };
+            animateElements();
+        });
+
+        // Function to toggle offer status
+        async function toggleOfferStatus(offerId, isActive) {
+            const action = isActive ? 'deactivate' : 'activate';
+            Swal.fire({
+                title: 'Are you sure?',
+                text: `Do you want to ${action} this offer?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d4af37',
+                cancelButtonColor: '#dc2626',
+                confirmButtonText: `Yes, ${action} it!`,
+                background: '#1e1e2f',
+                color: '#e5e7eb'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        const response = await fetch(`/admin/offers/toggle/${offerId}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' }
+                        });
+
+                        if (response.ok) {
+                            Swal.fire({
+                                title: 'Success!',
+                                text: `Offer has been ${action}d.`,
+                                icon: 'success',
+                                background: '#1e1e2f',
+                                color: '#e5e7eb',
+                                confirmButtonColor: '#d4af37',
+                                timer: 1500
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            throw new Error('Failed to update offer status');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'An error occurred while updating the offer status',
+                            icon: 'error',
+                            background: '#1e1e2f',
+                            color: '#e5e7eb',
+                            confirmButtonColor: '#d4af37'
+                        });
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

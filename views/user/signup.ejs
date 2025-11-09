@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InfinityTech - Sign Up</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .animate-gradient {
+            background-size: 200% 200%;
+            animation: gradientFlow 8s ease infinite;
+        }
+        .input-focus {
+            transition: all 0.3s ease;
+        }
+        .input-focus:focus {
+            box-shadow: 0 0 15px rgba(40, 69, 174, 0.6);
+            transform: scale(1.02);
+            border-color: #A517BA;
+        }
+        .btn-hover {
+            transition: all 0.4s ease;
+        }
+        .btn-hover:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(40, 69, 174, 0.5);
+        }
+        .glow-effect {
+            box-shadow: 0 0 20px rgba(165, 23, 186, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 min-h-screen overflow-hidden font-sans">
+    <div class="fixed inset-0 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-tr from-[#1F2A77] via-[#5D2E8C] to-[#A517BA] animate-gradient opacity-40"></div>
+        <div class="absolute inset-0 opacity-10">
+            <div class="w-full h-full bg-[radial-gradient(circle_at_center,#ffffff30_1px,transparent_1px)] bg-[length:40px_40px]"></div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 h-screen flex items-center justify-center relative z-10">
+        <div class="max-w-lg w-full space-y-8 bg-gray-800/70 backdrop-blur-xl p-10 rounded-3xl shadow-2xl border border-gray-700/20 glow-effect">
+            <div class="relative text-center">
+                <h2 class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[#2845AE] to-[#A517BA] animate-gradient">
+                    Sign Up
+                </h2>
+                <p class="mt-3 text-base text-gray-300 tracking-wide">
+                    Join the InfinityTech Revolution
+                </p>
+            </div>
+
+            <form id="signupForm" class="mt-8 space-y-8" method="POST">
+                <div class="space-y-6">
+                    <div class="relative group">
+                        <label for="name" class="block text-sm font-medium text-gray-200">Full Name</label>
+                        <input id="name" name="name" type="text" required
+                               class="input-focus appearance-none block w-full px-5 py-3 bg-gray-900/50 border border-gray-700 text-white rounded-xl placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#2845AE] hover:border-[#A517BA] transition-all duration-300" 
+                               placeholder="John Doe">
+                        <p id="nameError" class="hidden text-red-400 text-xs mt-2"></p>
+                    </div>
+
+                    <div class="relative group">
+                        <label for="email" class="block text-sm font-medium text-gray-200">Email Address</label>
+                        <input id="email" name="email" type="email" required
+                               class="input-focus appearance-none block w-full px-5 py-3 bg-gray-900/50 border border-gray-700 text-white rounded-xl placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#2845AE] hover:border-[#A517BA] transition-all duration-300" 
+                               placeholder="you@example.com">
+                        <p id="emailError" class="hidden text-red-400 text-xs mt-2"></p>
+                    </div>
+
+                    <div class="relative group">
+                        <label for="phone" class="block text-sm font-medium text-gray-200">Phone Number</label>
+                        <input id="phone" name="phone" type="tel" required
+                               class="input-focus appearance-none block w-full px-5 py-3 bg-gray-900/50 border border-gray-700 text-white rounded-xl placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#2845AE] hover:border-[#A517BA] transition-all duration-300" 
+                               placeholder="9876543210">
+                        <p id="phoneError" class="hidden text-red-400 text-xs mt-2"></p>
+                    </div>
+
+                    <div class="relative group">
+                        <label for="password" class="block text-sm font-medium text-gray-200">Password</label>
+                        <input id="password" name="password" type="password" required
+                               class="input-focus appearance-none block w-full px-5 py-3 bg-gray-900/50 border border-gray-700 text-white rounded-xl placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#2845AE] hover:border-[#A517BA] transition-all duration-300" 
+                               placeholder="••••••••">
+                        <p id="passwordError" class="hidden text-red-400 text-xs mt-2"></p>
+                    </div>
+
+                    <div class="relative group">
+                        <label for="confirmPassword" class="block text-sm font-medium text-gray-200">Confirm Password</label>
+                        <input id="confirmPassword" name="confirmPassword" type="password" required
+                               class="input-focus appearance-none block w-full px-5 py-3 bg-gray-900/50 border border-gray-700 text-white rounded-xl placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#2845AE] hover:border-[#A517BA] transition-all duration-300" 
+                               placeholder="••••••••">
+                        <p id="confirmPasswordError" class="hidden text-red-400 text-xs mt-2"></p>
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit" 
+                            class="btn-hover w-full flex justify-center py-4 px-6 border border-transparent text-base font-semibold rounded-xl text-white bg-gradient-to-r from-[#2845AE] to-[#A517BA] hover:from-[#1F2A77] hover:to-[#8A139E] focus:outline-none focus:ring-4 focus:ring-[#2845AE]/50 relative overflow-hidden transition-all duration-300">
+                        <span class="relative flex items-center">
+                            <i class="fas fa-user-plus mr-3"></i>
+                            Create Account
+                        </span>
+                    </button>
+                </div>
+            </form>
+
+            <div class="text-center">
+                <p class="text-sm text-gray-400 tracking-wide">
+                    Already have an account? 
+                    <a href="/login" class="font-semibold text-[#2845AE] hover:text-[#A517BA] transition-colors duration-300">
+                        Sign in
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="fixed top-6 left-6 z-20">
+        <a href="/" class="flex items-center text-white bg-gray-900/70 hover:bg-gray-800/80 px-5 py-3 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-700/50">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back to Home
+        </a>
+    </div>
+
+    <script>
+        document.getElementById('signupForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            document.querySelectorAll('.text-red-400').forEach(el => el.classList.add('hidden'));
+
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            let isValid = true;
+
+            if (!name) {
+                document.getElementById('nameError').textContent = 'Name is required';
+                document.getElementById('nameError').classList.remove('hidden');
+                isValid = false;
+            } else if (!/^[a-zA-Z][a-zA-Z\s]*$/.test(name)) {
+                document.getElementById('nameError').textContent = 'Name must start with a letter and contain only letters and spaces';
+                document.getElementById('nameError').classList.remove('hidden');
+                isValid = false;
+            } else if (name.length < 2) {
+                document.getElementById('nameError').textContent = 'Name must be at least 2 characters';
+                document.getElementById('nameError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            if (!email) {
+                document.getElementById('emailError').textContent = 'Email is required';
+                document.getElementById('emailError').classList.remove('hidden');
+                isValid = false;
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                document.getElementById('emailError').textContent = 'Invalid email format';
+                document.getElementById('emailError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            if (!phone) {
+                document.getElementById('phoneError').textContent = 'Phone number is required';
+                document.getElementById('phoneError').classList.remove('hidden');
+                isValid = false;
+            } else if (!/^[6-9]\d{9}$/.test(phone)) {
+                document.getElementById('phoneError').textContent = 'Phone must start with 6-9 and be 10 digits';
+                document.getElementById('phoneError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            if (!password) {
+                document.getElementById('passwordError').textContent = 'Password is required';
+                document.getElementById('passwordError').classList.remove('hidden');
+                isValid = false;
+            } else if (password.length < 8) {
+                document.getElementById('passwordError').textContent = 'Password must be at least 8 characters';
+                document.getElementById('passwordError').classList.remove('hidden');
+                isValid = false;
+            } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password)) {
+                document.getElementById('passwordError').textContent = 'Password must contain uppercase, lowercase, number, and special character';
+                document.getElementById('passwordError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            if (!confirmPassword) {
+                document.getElementById('confirmPasswordError').textContent = 'Confirm password is required';
+                document.getElementById('confirmPasswordError').classList.remove('hidden');
+                isValid = false;
+            } else if (password !== confirmPassword) {
+                document.getElementById('confirmPasswordError').textContent = 'Passwords do not match';
+                document.getElementById('confirmPasswordError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            if (!isValid) return;
+
+            try {
+                const response = await fetch('/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, phone, password, confirmPassword })
+                });
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    if (result.errors) {
+                        Object.keys(result.errors).forEach(field => {
+                            const errorElement = document.getElementById(`${field}Error`);
+                            if (errorElement) {
+                                errorElement.textContent = result.errors[field];
+                                errorElement.classList.remove('hidden');
+                            }
+                        });
+                    }
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Signup Failed',
+                        text: result.message,
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'OTP Sent',
+                        text: result.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = result.redirect;
+                    });
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Network Error',
+                    text: 'Unable to connect to server. Please try again.',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+                console.error('Signup error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,402 @@
+<%- include('./partials/adminHeader.ejs') %>
+
+<style>
+    .glass-effect {
+        @apply bg-[var(--content-bg)]/80 backdrop-blur-md border border-white/10;
+    }
+    .fade-in {
+        animation: fadeIn 0.5s ease-in;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .image-preview {
+        position: relative;
+        display: inline-block;
+    }
+    .image-preview img {
+        transition: opacity 0.3s ease;
+    }
+    .image-preview:hover .remove-btn {
+        opacity: 1;
+    }
+    .remove-btn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: rgba(255, 0, 0, 0.8);
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        text-align: center;
+        line-height: 20px;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    .error-text {
+        color: #ff4444; 
+        font-size: 0.875rem;
+        margin-top: 0.5rem; 
+        display: none;
+    }
+    .text-white-spaced {
+        color: #ffffff; 
+        letter-spacing: 0.025em; 
+        padding: 0.25rem 0;
+    }
+</style>
+
+<div class="flex min-h-screen gradient-bg animate-gradient">
+    <%- include('./partials/adminSidebar.ejs') %>
+
+    <div class="flex-1 overflow-x-hidden overflow-y-auto" style="margin-left: var(--sidebar-width, 16rem);">
+        <div class="container mx-auto px-6 py-8">
+            <!-- Header Section -->
+            <div class="flex justify-between items-center mb-8 animate-fade-in-up">
+                <h3 class="text-3xl font-extrabold bg-gradient-to-r from-[#d4af37] to-[#f9e076] bg-clip-text text-transparent tracking-tight">Add New Product</h3>
+                <a href="/admin/products" 
+                   class="golden-button flex items-center space-x-2 inline-flex items-center px-4 py-2 rounded-lg bg-gradient-to-r from-[#d4af37] to-[#f9e076] text-white transition-all duration-300 transform hover:scale-105 group glass-effect">
+                    <svg class="w-5 h-5 mr-2 transition-transform duration-300 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path>
+                    </svg>
+                    Back to Products
+                </a>
+            </div>
+
+            <!-- Message Section -->
+            <% if (message) { %>
+                <div class="mb-6 p-4 rounded-lg glass-effect fade-in <%= messageType === 'success' ? 'text-green-300 border-green-500/50' : 'text-red-300 border-red-500/50' %>">
+                    <%= message %>
+                </div>
+            <% } %>
+
+            <!-- Form Section -->
+            <div class="glass-effect rounded-2xl p-8 max-w-4xl mx-auto animate-fade-in-up animation-delay-200">
+                <form id="addProductForm" action="/admin/addProduct" method="POST" enctype="multipart/form-data" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-6">
+                            <div>
+                                <label for="name" class="block text-sm font-medium text-white-spaced mb-2">Product Name*</label>
+                                <input type="text" id="name" name="name" required 
+                                       class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] placeholder-gray-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300 hover:bg-[var(--secondary-bg)]">
+                                <p id="nameError" class="error-text">Product name is required</p>
+                            </div>
+                            <div>
+                                <label for="brand" class="block text-sm font-medium text-white-spaced mb-2">Brand*</label>
+                                <input type="text" id="brand" name="brand" required 
+                                       class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] placeholder-gray-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300 hover:bg-[var(--secondary-bg)]">
+                                <p id="brandError" class="error-text">Brand is required</p>
+                            </div>
+                            <div>
+                                <label for="description" class="block text-sm font-medium text-white-spaced mb-2">Description*</label>
+                                <textarea id="description" name="description" required rows="4" 
+                                          class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] placeholder-gray-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300 hover:bg-[var(--secondary-bg)]"></textarea>
+                                <p id="descriptionError" class="error-text">Description is required</p>
+                            </div>
+                            <div>
+                                <label for="category" class="block text-sm font-medium text-white-spaced mb-2">Category*</label>
+                                <select id="category" name="category" required 
+                                        class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300 hover:bg-[var(--secondary-bg)]">
+                                    <option value="">Select a category</option>
+                                    <% categories.forEach(category => { %>
+                                        <option value="<%= category._id %>"><%= category.name %></option>
+                                    <% }); %>
+                                </select>
+                                <p id="categoryError" class="error-text">Please select a category</p>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="price" class="block text-sm font-medium text-white-spaced mb-2">Price (₹)*</label>
+                                    <input type="number" id="price" name="price" required min="0" step="0.01" 
+                                           class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] placeholder-gray-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300 hover:bg-[var(--secondary-bg)]">
+                                    <p id="priceError" class="error-text">Price must be a positive number</p>
+                                </div>
+                                <div>
+                                    <label for="productOffer" class="block text-sm font-medium text-white-spaced mb-2">Discount (%)</label>
+                                    <input type="number" id="productOffer" name="productOffer" min="0" max="100" step="0.1" 
+                                           class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] placeholder-gray-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300 hover:bg-[var(--secondary-bg)]">
+                                    <p id="discountError" class="error-text">Discount must be between 0 and 100</p>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="stock" class="block text-sm font-medium text-white-spaced mb-2">Stock Quantity*</label>
+                                <input type="number" id="stock" name="stock" required min="0" 
+                                       class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] placeholder-gray-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300 hover:bg-[var(--secondary-bg)]">
+                                <p id="stockError" class="error-text">Stock must be a positive integer</p>
+                            </div>
+                        </div>
+                        <div class="space-y-6">
+                            <div class="glass-effect p-6 rounded-lg">
+                                <h3 class="text-lg font-medium text-white-spaced mb-4">Specifications</h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label for="processor" class="block text-sm font-medium text-white-spaced mb-2">Processor*</label>
+                                        <input type="text" id="processor" name="specifications[processor]" required 
+                                               class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] placeholder-gray-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300 hover:bg-[var(--secondary-bg)]">
+                                        <p id="processorError" class="error-text">Processor is required</p>
+                                    </div>
+                                    <div>
+                                        <label for="ram" class="block text-sm font-medium text-white-spaced mb-2">RAM*</label>
+                                        <input type="text" id="ram" name="specifications[ram]" required 
+                                               class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] placeholder-gray-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300 hover:bg-[var(--secondary-bg)]">
+                                        <p id="ramError" class="error-text">RAM is required</p>
+                                    </div>
+                                    <div>
+                                        <label for="storage" class="block text-sm font-medium text-white-spaced mb-2">Storage*</label>
+                                        <input type="text" id="storage" name="specifications[storage]" required 
+                                               class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] placeholder-gray-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300 hover:bg-[var(--secondary-bg)]">
+                                        <p id="storageError" class="error-text">Storage is required</p>
+                                    </div>
+                                    <div>
+                                        <label for="graphics" class="block text-sm font-medium text-white-spaced mb-2">Graphics*</label>
+                                        <input type="text" id="graphics" name="specifications[graphics]" required 
+                                               class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] placeholder-gray-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300 hover:bg-[var(--secondary-bg)]">
+                                        <p id="graphicsError" class="error-text">Graphics is required</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-white-spaced mb-2">Product Images* (Max 5 images)</label>
+                                <input type="file" id="images" name="images" multiple accept="image/*" 
+                                       class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300 hover:bg-[var(--secondary-bg)]">
+                                <div id="imagePreviewContainer" class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-4"></div>
+                                <p id="imageError" class="error-text">Please upload 1-5 images</p>
+                            </div>
+                            <div class="glass-effect p-4 rounded-lg">
+                                <p class="text-white-spaced text-sm mb-2">Price Summary:</p>
+                                <div class="flex justify-between text-white-spaced">
+                                    <span>Original Price:</span>
+                                    <span id="originalPrice">₹0.00</span>
+                                </div>
+                                <div class="flex justify-between text-white-spaced mt-2">
+                                    <span>Discount:</span>
+                                    <span id="discountAmount">₹0.00</span>
+                                </div>
+                                <div class="flex justify-between text-white-spaced mt-2 font-medium">
+                                    <span>Final Price:</span>
+                                    <span id="finalPrice">₹0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="submit" id="submitBtn" 
+                                class="inline-flex items-center px-6 py-3 rounded-lg bg-gradient-to-r from-[#d4af37] to-[#f9e076] text-white font-medium transition-all duration-300 transform hover:scale-105 group disabled:bg-gray-600 disabled:cursor-not-allowed">
+                            <svg class="w-5 h-5 mr-2 transition-transform duration-300 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Add Product
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+// DOM Elements
+const form = document.getElementById('addProductForm');
+const priceInput = document.getElementById('price');
+const discountInput = document.getElementById('productOffer');
+const originalPrice = document.getElementById('originalPrice');
+const discountAmount = document.getElementById('discountAmount');
+const finalPrice = document.getElementById('finalPrice');
+const imageInput = document.getElementById('images');
+const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+const submitBtn = document.getElementById('submitBtn');
+
+// Validation Fields
+const validationFields = {
+    name: { input: document.getElementById('name'), error: document.getElementById('nameError'), validate: val => val.trim().length > 0 },
+    brand: { input: document.getElementById('brand'), error: document.getElementById('brandError'), validate: val => val.trim().length > 0 },
+    description: { input: document.getElementById('description'), error: document.getElementById('descriptionError'), validate: val => val.trim().length > 0 },
+    category: { input: document.getElementById('category'), error: document.getElementById('categoryError'), validate: val => val !== '' },
+    price: { input: document.getElementById('price'), error: document.getElementById('priceError'), validate: val => !isNaN(val) && parseFloat(val) >= 0 },
+    stock: { input: document.getElementById('stock'), error: document.getElementById('stockError'), validate: val => !isNaN(val) && parseInt(val) >= 0 },
+    productOffer: { input: document.getElementById('productOffer'), error: document.getElementById('discountError'), validate: val => val === '' || (!isNaN(val) && parseFloat(val) >= 0 && parseFloat(val) <= 100) },
+    processor: { input: document.getElementById('processor'), error: document.getElementById('processorError'), validate: val => val.trim().length > 0 },
+    ram: { input: document.getElementById('ram'), error: document.getElementById('ramError'), validate: val => val.trim().length > 0 },
+    storage: { input: document.getElementById('storage'), error: document.getElementById('storageError'), validate: val => val.trim().length > 0 },
+    graphics: { input: document.getElementById('graphics'), error: document.getElementById('graphicsError'), validate: val => val.trim().length > 0 },
+    images: { input: imageInput, error: document.getElementById('imageError'), validate: () => imageInput.files.length > 0 && imageInput.files.length <= 5 }
+};
+
+let selectedFiles = [];
+
+// Animation Functions
+function fadeIn(element) {
+    element.style.opacity = '0';
+    element.classList.remove('hidden');
+    requestAnimationFrame(() => {
+        element.style.transition = 'opacity 0.5s ease-in';
+        element.style.opacity = '1';
+    });
+}
+
+function fadeOut(element, callback) {
+    element.style.transition = 'opacity 0.5s ease-out';
+    element.style.opacity = '0';
+    element.addEventListener('transitionend', function handler() {
+        element.remove();
+        if (callback) callback();
+        element.removeEventListener('transitionend', handler);
+    }, { once: true });
+}
+
+// Price Calculation
+function updatePrice() {
+    const price = parseFloat(priceInput.value) || 0;
+    const discount = parseFloat(discountInput.value) || 0;
+    const discountValue = price * (discount / 100);
+    const final = price - discountValue;
+
+    originalPrice.textContent = `₹${price.toFixed(2)}`;
+    discountAmount.textContent = `₹${discountValue.toFixed(2)}`;
+    finalPrice.textContent = `₹${final.toFixed(2)}`;
+    fadeIn(originalPrice.parentElement);
+}
+
+// Image Preview
+function updateImagePreview() {
+    imagePreviewContainer.innerHTML = '';
+    selectedFiles = Array.from(imageInput.files);
+    if (selectedFiles.length > 5) {
+        imageInput.value = ''; // Clear input
+        selectedFiles = [];
+        Swal.fire({
+            icon: 'error',
+            title: 'Too Many Files',
+            text: 'Maximum of 5 images allowed.',
+            background: 'var(--primary-bg)',
+            color: 'var(--text-color)',
+            confirmButtonColor: '#d4af37'
+        });
+        validateForm();
+        return;
+    }
+    selectedFiles.forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const div = document.createElement('div');
+            div.className = 'image-preview';
+            div.innerHTML = `
+                <img src="${e.target.result}" class="w-24 h-24 object-cover rounded-lg">
+                <span class="remove-btn" data-index="${index}">×</span>
+            `;
+            imagePreviewContainer.appendChild(div);
+            fadeIn(div);
+
+            div.querySelector('.remove-btn').addEventListener('click', () => {
+                fadeOut(div, () => {
+                    selectedFiles.splice(index, 1);
+                    const dt = new DataTransfer();
+                    selectedFiles.forEach(f => dt.items.add(f));
+                    imageInput.files = dt.files;
+                    updateImagePreview();
+                    validateForm();
+                });
+            });
+        };
+        reader.readAsDataURL(file);
+    });
+    validateForm();
+}
+
+// Form Validation
+function validateForm() {
+    let isValid = true;
+    Object.entries(validationFields).forEach(([key, { input, error, validate }]) => {
+        const value = input.value;
+        const valid = validate(value);
+        error.style.display = valid ? 'none' : 'block';
+        if (!valid) isValid = false;
+    });
+    submitBtn.disabled = !isValid;
+    return isValid;
+}
+
+// Event Listeners
+priceInput.addEventListener('input', () => {
+    updatePrice();
+    validateForm();
+});
+discountInput.addEventListener('input', () => {
+    updatePrice();
+    validateForm();
+});
+imageInput.addEventListener('change', updateImagePreview);
+
+Object.values(validationFields).forEach(({ input }) => {
+    input.addEventListener('input', validateForm);
+    if (input.tagName === 'SELECT') input.addEventListener('change', validateForm);
+});
+
+// Form Submission
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Validation Error',
+            text: 'Please fill all required fields correctly.',
+            background: 'var(--primary-bg)',
+            color: 'var(--text-color)',
+            confirmButtonColor: '#d4af37'
+        });
+        return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<svg class="w-5 h-5 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>Saving...';
+
+    try {
+        const formData = new FormData(form);
+
+        const response = await fetch('/admin/addProduct', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: 'Product added successfully!',
+                background: 'var(--primary-bg)',
+                color: 'var(--text-color)',
+                confirmButtonColor: '#d4af37',
+                showConfirmButton: false,
+                timer: 1500
+            }).then(() => {
+                window.location.href = '/admin/products';
+            });
+        } else {
+            throw new Error(data.message || 'Error adding product');
+        }
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message,
+            background: 'var(--primary-bg)',
+            color: 'var(--text-color)',
+            confirmButtonColor: '#d4af37'
+        });
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>Add Product';
+    }
+});
+
+// Initial Setup
+updatePrice();
+validateForm();
+</script>
+
+<%- include('./partials/adminFooter.ejs') %>

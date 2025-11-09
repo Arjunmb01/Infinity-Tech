@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InfinityTech Admin - Products Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --sidebar-width: 16rem;
+            --primary-bg: #1e1e2f;
+            --secondary-bg: #2a2438;
+            --content-bg: #2d2d44;
+            --accent-start: #d4af37;
+            --accent-end: #f9e076;
+            --text-color: #e5e7eb;
+        }
+
+        .gradient-bg {
+            @apply bg-gradient-to-br from-[var(--primary-bg)] to-[var(--secondary-bg)] !important;
+        }
+
+        .glass-effect-dark {
+            @apply bg-[var(--content-bg)]/80 backdrop-blur-md border border-white/10;
+        }
+
+        .golden-button {
+            @apply bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white px-4 py-2 rounded-lg shadow-lg hover:scale-105 transition-all duration-300;
+        }
+
+        body {
+            @apply font-sans text-[var(--text-color)] min-h-screen m-0 p-0 bg-[var(--primary-bg)] !important;
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+
+        .animate-gradient {
+            background-size: 200% 200%;
+            animation: gradientAnimation 15s ease infinite;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        .animation-delay-200 { animation-delay: 0.2s; }
+        .animation-delay-400 { animation-delay: 0.4s; }
+
+        tr:hover {
+            @apply bg-[var(--content-bg)]/50;
+        }
+
+        .pagination-container {
+            @apply mt-8 flex justify-center items-center gap-4 animate-fade-in-up animation-delay-400;
+        }
+
+        .pagination-button {
+            @apply inline-flex items-center px-4 py-2 glass-effect-dark text-sm text-white hover:bg-[var(--secondary-bg)] transition-all duration-300 border-r border-white/10;
+            letter-spacing: 0.025em; /* Added for proper spacing */
+        }
+
+        .pagination-button.active {
+            @apply bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white border-none;
+        }
+
+        .pagination-button:disabled,
+        .pagination-button.opacity-50 {
+            @apply opacity-50 cursor-not-allowed hover:bg-[var(--content-bg)];
+        }
+
+        main {
+            margin-left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            z-index: 100;
+            animation: slideIn 0.5s ease-out forwards;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(0); }
+        }
+
+        .text-white-spaced {
+            color: #ffffff; /* Explicit white color */
+            letter-spacing: 0.025em; /* Slight letter spacing for readability */
+            padding: 0.25rem 0; /* Vertical padding for spacing */
+        }
+    </style>
+</head>
+
+<body class="gradient-bg animate-gradient" style="background: linear-gradient(to bottom right, #1e1e2f, #2a2438) !important;">
+    <!-- Sidebar -->
+    <div class="sidebar fixed top-0 left-0 h-full w-64 md:w-[var(--sidebar-width)] bg-[var(--primary-bg)] z-50 transition-transform duration-300 md:translate-x-0 -translate-x-full shadow-lg">
+        <div class="flex flex-col h-full text-[var(--text-color)]">
+            <div class="flex items-center justify-start p-6 border-b border-white/10">
+                <span class="text-3xl font-extrabold bg-gradient-to-r from-[#d4af37] to-[#f9e076] bg-clip-text text-transparent tracking-tight ">InfinityTech</span>
+            </div>
+            
+            <nav class="flex-1 space-y-2 p-4 overflow-y-auto">
+                <% const navItems = [
+                    { href: '/admin/dashboard', icon: 'fa-home', label: 'Dashboard', active: (typeof path !== 'undefined' && path === '/admin/dashboard') },
+                    { href: '/admin/products', icon: 'fa-box', label: 'Products', active: (typeof path !== 'undefined' && path.includes('/admin/product')) },
+                    { href: '/admin/categories', icon: 'fa-tags', label: 'Categories', active: (typeof path !== 'undefined' && path.includes('/admin/categor')) },
+                    { href: '/admin/users', icon: 'fa-users', label: 'Customers', active: (typeof path !== 'undefined' && path === '/admin/users') },
+                    { href: '/admin/orders', icon: 'fa-shopping-bag', label: 'Orders', active: (typeof path !== 'undefined' && path === '/admin/orders') },
+                    { href: '/admin/return/requests', icon: 'fa-undo', label: 'Return Orders', active: (typeof path !== 'undefined' && path === '/admin/return/requests') },
+                    { href: '/admin/offers', icon: 'fa-percentage', label: 'Offer', active: (typeof path !== 'undefined' && path === '/admin/offers') },
+                    { href: '/admin/coupons', icon: 'fa-ticket-alt', label: 'Coupon', active: (typeof path !== 'undefined' && path === '/admin/coupons') },
+                    { href: '/admin/logout', icon: 'fa-sign-out-alt', label: 'Logout', active: (typeof path !== 'undefined' && path === '/admin/logout') }
+                ]; %>
+                <% navItems.forEach(item => { %>
+                    <a href="<%= item.href %>" class="flex items-center py-2.5 px-4 rounded transition duration-300 group <%= item.active ? 'golden-button text-white scale-105' : 'text-[var(--text-color)] hover:bg-[var(--secondary-bg)] hover:text-white hover:scale-105' %>">
+                        <i class="fas <%= item.icon %> w-6 transition-transform duration-300 group-hover:rotate-12"></i>
+                        <span class="ml-3"><%= item.label %></span>
+                    </a>
+                <% }); %>
+            </nav>
+        </div>
+    </div>
+
+    <main class="flex-1 overflow-x-hidden overflow-y-auto">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Flash Messages -->
+            <% if (success_msg && success_msg.length > 0) { %>
+                <div class="glass-effect-dark px-4 py-2 rounded-lg mt-4 text-center bg-green-500/20 text-green-400 animate-fade-in-up">
+                    <%= success_msg %>
+                </div>
+            <% } %>
+            <% if (error_msg && error_msg.length > 0) { %>
+                <div class="glass-effect-dark px-4 py-2 rounded-lg mt-4 text-center bg-red-500/20 text-red-400 animate-fade-in-up">
+                    <%= error_msg %>
+                </div>
+            <% } %>
+
+            <!-- Breadcrumbs -->
+            <nav class="mb-6 animate-fade-in-up">
+                <ol class="flex items-center space-x-2 text-sm text-[var(--text-color)]">
+                    <li class="flex items-center">
+                        <a href="/admin/dashboard" class="hover:text-[var(--accent-start)] transition-colors">Dashboard</a>
+                        <span class="mx-2">/</span>
+                    </li>
+                    <li>
+                        <span class="text-[var(--accent-start)]">Products</span>
+                    </li>
+                </ol>
+            </nav>
+
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-8 animate-fade-in-up">
+                <h1 class="text-3xl font-extrabold bg-gradient-to-r from-[#d4af37] to-[#f9e076] bg-clip-text text-transparent tracking-tight" aria-label="Categories Management">Products</h1>
+                <a href="/admin/addProduct" 
+                   class="inline-flex items-center px-4 py-2 rounded-lg bg-gradient-to-r from-[#d4af37] to-[#f9e076] text-white font-medium transition-all duration-300 transform hover:scale-105 group"
+                   aria-label="Add New Category">
+                    <svg class="w-5 h-5 mr-2 transition-transform duration-300 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    Add New Product
+                </a>
+            </div>
+
+            <!-- Search and Filters -->
+            <div class="mb-6 space-y-4 animate-fade-in-up animation-delay-400">
+                <form id="filterForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" method="GET">
+                    <!-- Search Bar -->
+                    <div class="col-span-full md:col-span-2">
+                        <div class="relative">
+                            <input type="text" name="search" value="<%= filters.search %>" placeholder="Search products..." class="w-full px-4 py-2 pl-10 bg-[var(--content-bg)] border border-white/10 rounded-lg text-[var(--text-color)] placeholder-gray-400 focus:border-[var(--accent-start)] focus:ring-2 focus:ring-[var(--accent-start)]/50">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </div>
+
+                    <!-- Category Filter -->
+                    <div>
+                        <select name="category" class="w-full px-4 py-2 bg-[var(--content-bg)] border border-white/10 rounded-lg text-[var(--text-color)] focus:border-[var(--accent-start)] focus:ring-2 focus:ring-[var(--accent-start)]/50">
+                            <option value="">All Categories</option>
+                            <% categories.forEach(category => { %>
+                                <option value="<%= category._id %>" <%= filters.category === category._id.toString() ? 'selected' : '' %>><%= category.name %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+
+                    <!-- Price Range Filter -->
+                    <div>
+                        <select name="priceRange" class="w-full px-4 py-2 bg-[var(--content-bg)] border border-white/10 rounded-lg text-[var(--text-color)] focus:border-[var(--accent-start)] focus:ring-2 focus:ring-[var(--accent-start)]/50">
+                            <option value="">All Prices</option>
+                            <option value="0-1000" <%= filters.priceRange === '0-1000' ? 'selected' : '' %>>Under ₹1,000</option>
+                            <option value="1000-5000" <%= filters.priceRange === '1000-5000' ? 'selected' : '' %>>₹1,000 - ₹5,000</option>
+                            <option value="5000-10000" <%= filters.priceRange === '5000-10000' ? 'selected' : '' %>>₹5,000 - ₹10,000</option>
+                            <option value="10000-50000" <%= filters.priceRange === '10000-50000' ? 'selected' : '' %>>₹10,000 - ₹50,000</option>
+                            <option value="50000" <%= filters.priceRange === '50000' ? 'selected' : '' %>>Above ₹50,000</option>
+                        </select>
+                    </div>
+
+                    <!-- Stock Filter -->
+                    <div>
+                        <select name="stock" class="w-full px-4 py-2 bg-[var(--content-bg)] border border-white/10 rounded-lg text-[var(--text-color)] focus:border-[var(--accent-start)] focus:ring-2 focus:ring-[var(--accent-start)]/50">
+                            <option value="">All Stock Levels</option>
+                            <option value="out" <%= filters.stock === 'out' ? 'selected' : '' %>>Out of Stock</option>
+                            <option value="low" <%= filters.stock === 'low' ? 'selected' : '' %>>Low Stock</option>
+                            <option value="available" <%= filters.stock === 'available' ? 'selected' : '' %>>In Stock</option>
+                        </select>
+                    </div>
+
+                    <!-- Status Filter -->
+                    <div>
+                        <select name="status" class="w-full px-4 py-2 bg-[var(--content-bg)] border border-white/10 rounded-lg text-[var(--text-color)] focus:border-[var(--accent-start)] focus:ring-2 focus:ring-[var(--accent-start)]/50">
+                            <option value="">All Status</option>
+                            <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>>Active</option>
+                            <option value="inactive" <%= filters.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+                            <option value="listed" <%= filters.status === 'listed' ? 'selected' : '' %>>Listed</option>
+                            <option value="unlisted" <%= filters.status === 'unlisted' ? 'selected' : '' %>>Unlisted</option>
+                            <option value="featured" <%= filters.status === 'featured' ? 'selected' : '' %>>Featured</option>
+                            <option value="notfeatured" <%= filters.status === 'notfeatured' ? 'selected' : '' %>>Not Featured</option>
+                        </select>
+                    </div>
+
+                    <!-- Sort By -->
+                    <div>
+                        <select name="sortBy" class="w-full px-4 py-2 bg-[var(--content-bg)] border border-white/10 rounded-lg text-[var(--text-color)] focus:border-[var(--accent-start)] focus:ring-2 focus:ring-[var(--accent-start)]/50">
+                            <option value="-createdAt" <%= filters.sortBy === '-createdAt' ? 'selected' : '' %>>Newest First</option>
+                            <option value="createdAt" <%= filters.sortBy === 'createdAt' ? 'selected' : '' %>>Oldest First</option>
+                            <option value="-price" <%= filters.sortBy === '-price' ? 'selected' : '' %>>Price: High to Low</option>
+                            <option value="price" <%= filters.sortBy === 'price' ? 'selected' : '' %>>Price: Low to High</option>
+                            <option value="-stock" <%= filters.sortBy === '-stock' ? 'selected' : '' %>>Stock: High to Low</option>
+                            <option value="stock" <%= filters.sortBy === 'stock' ? 'selected' : '' %>>Stock: Low to High</option>
+                        </select>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="col-span-full flex justify-end space-x-4">
+                        <button type="reset" onclick="window.location='/admin/products'" class="px-4 py-2 bg-[var(--secondary-bg)] hover:bg-[var(--content-bg)] text-[var(--text-color)] rounded-lg transition-colors">
+                            Reset Filters
+                        </button>
+                        <button type="submit" class="golden-button">
+                            Apply Filters
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Products Table Container -->
+            <div class="products-container animate-fade-in-up animation-delay-400">
+                <div class="glass-effect-dark rounded-xl overflow-hidden shadow-xl">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-white/10">
+                            <thead>
+                                <tr class="bg-[var(--secondary-bg)]">
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white-spaced uppercase tracking-wider">Product</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white-spaced uppercase tracking-wider">Category</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white-spaced uppercase tracking-wider">Stock</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white-spaced uppercase tracking-wider">Price</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white-spaced uppercase tracking-wider">Discount</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white-spaced uppercase tracking-wider">Status</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white-spaced uppercase tracking-wider">Listing</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white-spaced uppercase tracking-wider">Featured</th>
+                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-white-spaced uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/10 bg-[var(--content-bg)]/80">
+                                <% products.forEach(product => { %>
+                                    <tr class="hover:bg-[var(--content-bg)]/50 transition-colors">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div class="flex-shrink-0 h-10 w-10">
+                                                    <img class="h-10 w-10 rounded-lg object-cover" src="<%= product.images[0] || '/images/placeholder.jpg' %>" alt="<%= product.name %>">
+                                                </div>
+                                                <div class="ml-4">
+                                                    <div class="text-sm font-medium text-[var(--text-color)]"><%= product.name %></div>
+                                                    <div class="text-sm text-gray-400"><%= product.brand %></div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-[var(--text-color)]">
+                                                <%= product.category ? product.category.name : 'Uncategorized' %>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full <%= product.stock < 6 ? 'bg-red-500/20 text-red-400 border border-red-500/20' : 'bg-green-500/20 text-green-400 border border-green-500/20' %>">
+                                                <%= product.stock %> units
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-color)]">
+                                            ₹<%= product.price.toFixed(2) %>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <% if (product.productOffer) { %>
+                                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-500/20 text-red-400 border border-red-500/20">
+                                                    <%= product.productOffer %>% OFF
+                                                </span>
+                                            <% } else { %>
+                                                <span class="text-sm text-gray-400">-</span>
+                                            <% } %>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="<%= product.isDeleted ? 'text-red-400' : 'text-green-400' %>">
+                                                <%= product.isDeleted ? 'Inactive' : 'Active' %>
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="<%= product.isListed ? 'text-green-400' : 'text-red-400' %>">
+                                                <%= product.isListed ? 'Listed' : 'Unlisted' %>
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="<%= product.isFeatured ? 'text-yellow-400' : 'text-gray-400' %>">
+                                                <%= product.isFeatured ? 'Featured' : 'Not Featured' %>
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <div class="flex justify-end space-x-3">
+                                                <a href="/admin/editProduct/<%= product._id %>" class="text-[var(--accent-start)] hover:text-[var(--accent-end)] transition-colors duration-300">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button data-product-id="<%= product._id %>" class="toggle-list-btn <%= product.isListed ? 'text-green-400 hover:text-green-300' : 'text-red-400 hover:text-red-300' %> transition-colors duration-300">
+                                                    <i class="fas <%= product.isListed ? 'fa-eye' : 'fa-eye-slash' %>"></i>
+                                                </button>
+                                                <button data-product-id="<%= product._id %>" class="toggle-featured-btn <%= product.isFeatured ? 'text-yellow-400 hover:text-yellow-300' : 'text-gray-400 hover:text-gray-300' %> transition-colors duration-300">
+                                                    <i class="fas <%= product.isFeatured ? 'fa-star' : 'fa-star-half-alt' %>"></i>
+                                                </button>
+                                                <button data-product-id="<%= product._id %>" class="delete-product-btn text-red-400 hover:text-red-300 transition-colors duration-300">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-container">
+                    <% if (pagination.totalPages > 1) { %>
+                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                            <!-- Previous Button -->
+                            <% if (pagination.hasPrevPage) { %>
+                                <a href="/admin/products?page=<%= pagination.currentPage - 1 %>&limit=<%= pagination.limit %>" 
+                                   class="pagination-button rounded-l-md">
+                                    <span class="sr-only">Previous</span>
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            <% } else { %>
+                                <span class="pagination-button rounded-l-md opacity-50 cursor-not-allowed">
+                                    <i class="fas fa-chevron-left"></i>
+                                </span>
+                            <% } %>
+                            
+                            <!-- Page Numbers -->
+                            <% let startPage = Math.max(1, pagination.currentPage - 2); %>
+                            <% let endPage = Math.min(pagination.totalPages, startPage + 4); %>
+                            <% startPage = Math.max(1, endPage - 4); %>
+
+                            <% if (startPage > 1) { %>
+                                <a href="/admin/products?page=1&limit=<%= pagination.limit %>" 
+                                   class="pagination-button">1</a>
+                                <% if (startPage > 2) { %>
+                                    <span class="pagination-button">...</span>
+                                <% } %>
+                            <% } %>
+                                
+                            <% for(let i = startPage; i <= endPage; i++) { %>
+                                <a href="/admin/products?page=<%= i %>&limit=<%= pagination.limit %>" 
+                                   class="pagination-button <%= pagination.currentPage === i ? 'active' : '' %>">
+                                    <%= i %>
+                                </a>
+                            <% } %>
+                            
+                            <% if (endPage < pagination.totalPages) { %>
+                                <% if (endPage < pagination.totalPages - 1) { %>
+                                    <span class="pagination-button">...</span>
+                                <% } %>
+                                <a href="/admin/products?page=<%= pagination.totalPages %>&limit=<%= pagination.limit %>" 
+                                   class="pagination-button">
+                                    <%= pagination.totalPages %>
+                                </a>
+                            <% } %>
+                            
+                            <!-- Next Button -->
+                            <% if (pagination.hasNextPage) { %>
+                                <a href="/admin/products?page=<%= pagination.currentPage + 1 %>&limit=<%= pagination.limit %>" 
+                                   class="pagination-button rounded-r-md">
+                                    <span class="sr-only">Next</span>
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            <% } else { %>
+                                <span class="pagination-button rounded-r-md opacity-50 cursor-not-allowed">
+                                    <i class="fas fa-chevron-right"></i>
+                                </span>
+                            <% } %>
+                        </nav>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <div class="relative min-h-screen flex items-center justify-center p-4">
+            <div class="glass-effect-dark rounded-xl p-6 max-w-sm w-full">
+                <h3 class="text-xl font-semibold text-[var(--text-color)] mb-4">Confirm Delete</h3>
+                <p class="text-gray-300 mb-6">Are you sure you want to delete this product? This action cannot be undone.</p>
+                <div class="flex justify-end space-x-4">
+                    <button id="cancelDeleteBtn" class="px-4 py-2 text-[var(--text-color)] hover:text-white transition-colors">Cancel</button>
+                    <button id="confirmDeleteBtn" class="golden-button">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sidebar Toggle for Mobile
+        const sidebar = document.querySelector('.sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('-translate-x-full'));
+        }
+
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth < 768 && !sidebar.contains(e.target) && !sidebarToggle?.contains(e.target)) {
+                sidebar.classList.add('-translate-x-full');
+            }
+        });
+
+        // Confirm Delete
+        function confirmDelete(productId) {
+            const modal = document.getElementById('deleteModal');
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            const cancelBtn = document.getElementById('cancelDeleteBtn');
+            
+            modal.classList.remove('hidden');
+            confirmBtn.onclick = async () => {
+                try {
+                    const response = await fetch(`/admin/deleteProduct/${productId}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (response.ok) {
+                        Swal.fire({
+                            title: 'Deleted!',
+                            text: 'Product has been deleted.',
+                            icon: 'success',
+                            background: '#1e1e2f',
+                            color: '#e5e7eb',
+                            confirmButtonColor: '#d4af37',
+                            timer: 1500
+                        }).then(() => {
+                            window.location.href = '/admin/products';
+                        });
+                    } else {
+                        console.error('Failed to delete product');
+                        closeDeleteModal();
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Failed to delete product',
+                            icon: 'error',
+                            background: '#1e1e2f',
+                            color: '#e5e7eb',
+                            confirmButtonColor: '#d4af37'
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    closeDeleteModal();
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'An error occurred. Please try again.',
+                        icon: 'error',
+                        background: '#1e1e2f',
+                        color: '#e5e7eb',
+                        confirmButtonColor: '#d4af37'
+                    });
+                }
+            };
+            cancelBtn.onclick = closeDeleteModal;
+        }
+
+        function closeDeleteModal() {
+            const modal = document.getElementById('deleteModal');
+            modal.classList.add('hidden');
+        }
+
+        // Soft Delete Product
+        async function softDeleteProduct(productId) {
+            const result = await Swal.fire({
+                title: 'Are you sure?',
+                text: 'This will soft delete the product!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d4af37',
+                cancelButtonColor: '#ef4444',
+                confirmButtonText: 'Yes, delete it!',
+                background: '#1e1e2f',
+                color: '#e5e7eb'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/admin/softDeleteProduct/${productId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        Swal.fire({
+                            title: 'Deleted!',
+                            text: 'Product has been soft deleted.',
+                            icon: 'success',
+                            background: '#1e1e2f',
+                            color: '#e5e7eb',
+                            confirmButtonColor: '#d4af37',
+                            timer: 1500
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: data.message || 'Failed to update product status',
+                            icon: 'error',
+                            background: '#1e1e2f',
+                            color: '#e5e7eb',
+                            confirmButtonColor: '#d4af37'
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'An error occurred. Please try again.',
+                        icon: 'error',
+                        background: '#1e1e2f',
+                        color: '#e5e7eb',
+                        confirmButtonColor: '#d4af37'
+                    });
+                }
+            }
+        }
+
+        // Toggle List Status
+        async function toggleListStatus(productId) {
+            const result = await Swal.fire({
+                title: 'Are you sure?',
+                text: 'This will toggle the listing status of the product!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d4af37',
+                cancelButtonColor: '#ef4444',
+                confirmButtonText: 'Yes, toggle it!',
+                background: '#1e1e2f',
+                color: '#e5e7eb'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/admin/products/${productId}/toggle-list`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    if (response.ok) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Listing status updated.',
+                            icon: 'success',
+                            background: '#1e1e2f',
+                            color: '#e5e7eb',
+                            confirmButtonColor: '#d4af37',
+                            timer: 1500
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Failed to toggle product status',
+                            icon: 'error',
+                            background: '#1e1e2f',
+                            color: '#e5e7eb',
+                            confirmButtonColor: '#d4af37'
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'An error occurred. Please try again.',
+                        icon: 'error',
+                        background: '#1e1e2f',
+                        color: '#e5e7eb',
+                        confirmButtonColor: '#d4af37'
+                    });
+                }
+            }
+        }
+
+        // Toggle Featured Status
+        async function toggleFeaturedStatus(productId) {
+            const result = await Swal.fire({
+                title: 'Are you sure?',
+                text: 'This will toggle the featured status of the product!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d4af37',
+                cancelButtonColor: '#ef4444',
+                confirmButtonText: 'Yes, toggle it!',
+                background: '#1e1e2f',
+                color: '#e5e7eb'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/admin/products/${productId}/toggle-featured`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: data.message,
+                            icon: 'success',
+                            background: '#1e1e2f',
+                            color: '#e5e7eb',
+                            confirmButtonColor: '#d4af37',
+                            timer: 1500
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: data.message || 'Failed to toggle featured status',
+                            icon: 'error',
+                            background: '#1e1e2f',
+                            color: '#e5e7eb',
+                            confirmButtonColor: '#d4af37'
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'An error occurred. Please try again.',
+                        icon: 'error',
+                        background: '#1e1e2f',
+                        color: '#e5e7eb',
+                        confirmButtonColor: '#d4af37'
+                    });
+                }
+            }
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.querySelector('.sidebar');
+            const main = document.querySelector('main');
+
+            // Adjust Sidebar Height
+            const updateHeight = () => {
+                const mainHeight = main.offsetHeight;
+                sidebar.style.height = `${Math.max(mainHeight, window.innerHeight)}px`;
+            };
+            updateHeight();
+            window.addEventListener('resize', updateHeight);
+
+            // Animate Elements
+            const animateElements = () => {
+                const elements = document.querySelectorAll('.animate-fade-in-up');
+                elements.forEach((element, index) => {
+                    element.style.animationDelay = `${index * 0.2}s`;
+                });
+            };
+            animateElements();
+
+            // Attach Event Listeners to Buttons
+            document.querySelectorAll('.delete-product-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const productId = button.getAttribute('data-product-id');
+                    softDeleteProduct(productId);
+                });
+            });
+
+            document.querySelectorAll('.toggle-list-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const productId = button.getAttribute('data-product-id');
+                    toggleListStatus(productId);
+                });
+            });
+
+            document.querySelectorAll('.toggle-featured-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const productId = button.getAttribute('data-product-id');
+                    toggleFeaturedStatus(productId);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,385 @@
+<%- include('./partials/adminHeader.ejs') %>
+
+<style>
+    /* Override conflicting styles */
+    .products-container {
+        display: block !important;
+    }
+    .product-grid {
+        display: none !important;
+    }
+    .pagination-container {
+        @apply mt-8 flex flex-col sm:flex-row items-center justify-between gap-4;
+    }
+    .pagination-button {
+        @apply relative inline-flex items-center px-3 py-2 glass-effect text-sm text-[var(--text-color)] hover:bg-[var(--secondary-bg)] transition-all duration-300;
+    }
+    .pagination-button.active {
+        @apply bg-[#d4af37]/20 text-[#d4af37];
+    }
+    .flash-message {
+        @apply px-4 py-2 rounded-lg mt-4 text-center glass-effect;
+    }
+    .flash-success {
+        @apply bg-green-500/20 text-green-400;
+    }
+    .flash-error {
+        @apply bg-red-500/20 text-red-400;
+    }
+    tr:hover {
+        @apply bg-[var(--secondary-bg)];
+    }
+</style>
+
+<div class="flex min-h-screen gradient-bg animate-gradient">
+    <%- include('./partials/adminSidebar.ejs') %>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-x-hidden overflow-y-auto p-6" style="margin-left: var(--sidebar-width, 16rem);" role="main">
+        <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Header Section -->
+            <div class="flex justify-between items-center mb-8 animate-fade-in-up">
+                <h1 class="text-3xl font-extrabold bg-gradient-to-r from-[#d4af37] to-[#f9e076] bg-clip-text text-transparent tracking-tight" aria-label="Categories Management">Categories</h1>
+                <a href="/admin/addCategory" 
+                   class="inline-flex items-center px-4 py-2 rounded-lg bg-gradient-to-r from-[#d4af37] to-[#f9e076] text-white font-medium transition-all duration-300 transform hover:scale-105 group"
+                   aria-label="Add New Category">
+                    <svg class="w-5 h-5 mr-2 transition-transform duration-300 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    Add New Category
+                </a>
+            </div>
+
+            <!-- Search & Filter Form -->
+            <form method="GET" action="/admin/categories" class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 mb-6 animate-fade-in-up animation-delay-200">
+                <input type="text" name="search" placeholder="Search by name..." 
+                       value="<%= search %>"
+                       class="flex-1 px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] placeholder-gray-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300">
+                
+                <select name="status" 
+                        class="px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300">
+                    <option value="">All</option>
+                    <option value="true" <%= status === "true" ? "selected" : "" %>>Active</option>
+                    <option value="false" <%= status === "false" ? "selected" : "" %>>Inactive</option>
+                </select>
+        
+                <select name="sort" 
+                        class="px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300">
+                    <option value="date" <%= sort === "date" ? "selected" : "" %>>Newest First</option>
+                    <option value="name" <%= sort === "name" ? "selected" : "" %>>Alphabetical</option>
+                </select>
+        
+                <button type="submit" 
+                        class="px-4 py-3 rounded-lg bg-gradient-to-r from-[#d4af37] to-[#f9e076] text-white transition-all duration-300 hover:scale-105">
+                    Filter
+                </button>
+            </form>
+
+            <!-- Categories Table -->
+            <section class="glass-effect-dark rounded-xl p-6 shadow-xl border border-white/10 animate-fade-in-up animation-delay-400">
+                <div class="overflow-x-auto">
+                    <table class="w-full" aria-label="Categories List">
+                        <thead>
+                            <tr class="border-b border-white/10">
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Category Name</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Description</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/10">
+                            <% if (categories && categories.length) { %>
+                                <% categories.forEach(category => { %>
+                                <tr class="transition-colors" data-category-id="<%= category._id %>">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-color)] font-medium">
+                                        <%= category.name %>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-[var(--text-color)]">
+                                        <%= category.description %>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span id="status-<%= category._id %>"
+                                              class="inline-flex px-2 py-1 text-xs font-semibold leading-5 rounded-full
+                                                     <%= category.isActive ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400' %>"
+                                              role="status">
+                                            <%= category.isActive ? 'Active' : 'Inactive' %>
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                        <button data-action="edit" data-id="<%= category._id %>"
+                                                class="inline-flex items-center px-3 py-1.5 rounded-lg bg-[var(--content-bg)] text-[var(--text-color)] hover:bg-[var(--secondary-bg)] hover:text-white transition-all duration-300 transform hover:scale-105"
+                                                aria-label="Edit Category">
+                                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                            </svg>
+                                            Edit
+                                        </button>
+                                        <button data-action="toggle" data-id="<%= category._id %>"
+                                                id="toggle-<%= category._id %>"
+                                                class="inline-flex items-center px-3 py-1.5 rounded-lg <%= category.isActive ? 'bg-red-600 hover:bg-red-500' : 'bg-[#d4af37] hover:bg-[#f9e076]' %> text-white transition-all duration-300 transform hover:scale-105"
+                                                aria-label="<%= category.isActive ? 'Deactivate Category' : 'Activate Category' %>">
+                                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                      d="<%= category.isActive ? 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z' : 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' %>">
+                                                </path>
+                                            </svg>
+                                            <%= category.isActive ? 'Deactivate' : 'Activate' %>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <% }); %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="4" class="text-center text-[var(--text-color)] py-4">No categories found</td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+
+                    <!-- Pagination -->
+                    <div class="flex justify-between items-center mt-6 text-[var(--text-color)]">
+                        <p>Page <%= currentPage %> of <%= totalPages %></p>
+                        <div class="space-x-2">
+                            <% if (currentPage > 1) { %>
+                                <a href="?page=<%= currentPage - 1 %>&search=<%= search %>&status=<%= status %>&sort=<%= sort %>" 
+                                   class="px-3 py-2 bg-[var(--content-bg)] hover:bg-[var(--secondary-bg)] text-[var(--text-color)] rounded-lg transition-all duration-300">
+                                    Previous
+                                </a>
+                            <% } %>
+                            <% if (currentPage < totalPages) { %>
+                                <a href="?page=<%= currentPage + 1 %>&search=<%= search %>&status=<%= status %>&sort=<%= sort %>" 
+                                   class="px-3 py-2 bg-[var(--content-bg)] hover:bg-[var(--secondary-bg)] text-[var(--text-color)] rounded-lg transition-all duration-300">
+                                    Next
+                                </a>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<!-- Edit Category Modal -->
+<div id="editModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50" role="dialog" aria-modal="true">
+    <div class="glass-effect-dark rounded-xl p-8 max-w-lg w-full mx-4 shadow-xl border border-white/10">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-[var(--text-color)]" id="editModalTitle">Edit Category</h2>
+            <button id="closeModalBtn"
+                    class="text-gray-400 hover:text-white transition-colors" 
+                    aria-label="Close Edit Modal">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <form id="editForm" class="space-y-6" novalidate>
+            <input type="hidden" id="categoryId" name="categoryId">
+            <div>
+                <label for="editName" class="block text-sm font-medium text-[var(--text-color)] mb-2">Category Name</label>
+                <input type="text" id="editName" name="name"   
+                       class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] placeholder-gray-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300"
+                       aria-required="true" minlength="2" maxlength="100">
+            </div>
+            <div>
+                <label for="editDescription" class="block text-sm font-medium text-[var(--text-color)] mb-2">Description</label>
+                <textarea id="editDescription" name="description" rows="3" 
+                          class="w-full px-4 py-3 rounded-lg bg-[var(--content-bg)] border border-white/10 text-[var(--text-color)] placeholder-gray-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all duration-300"
+                          aria-required="true" maxlength="500"></textarea>
+            </div>
+            <div class="flex justify-end space-x-3 pt-4">
+                <button type="button" id="cancelEditBtn"
+                        class="px-4 py-2 rounded-lg bg-[var(--content-bg)] text-[var(--text-color)] hover:bg-[var(--secondary-bg)] hover:text-white transition-all duration-300"
+                        aria-label="Cancel Edit">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="px-4 py-2 rounded-lg bg-gradient-to-r from-[#d4af37] to-[#f9e076] text-white transition-all duration-300 hover:scale-105"
+                        aria-label="Save Category Changes">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- SweetAlert2 for confirmations -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Event delegation for Edit and Toggle buttons
+        document.querySelector('table').addEventListener('click', (e) => {
+            const button = e.target.closest('button');
+            if (!button) return;
+
+            const categoryId = button.dataset.id;
+            const action = button.dataset.action;
+
+            if (action === 'edit') {
+                editCategory(categoryId);
+            } else if (action === 'toggle') {
+                toggleCategory(categoryId);
+            }
+        });
+
+        // Close modal button
+        document.getElementById('closeModalBtn').addEventListener('click', closeEditModal);
+        document.getElementById('cancelEditBtn').addEventListener('click', closeEditModal);
+
+        // Edit form submission
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const categoryId = document.getElementById('categoryId').value;
+            const formData = {
+                name: document.getElementById('editName').value.trim(),
+                description: document.getElementById('editDescription').value.trim()
+            };
+
+            fetch(`/admin/updateCategory/${categoryId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: data.message,
+                        background: 'var(--primary-bg)',
+                        color: 'var(--text-color)',
+                        confirmButtonColor: '#d4af37',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    throw new Error(data.message);
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: error.message,
+                    background: 'var(--primary-bg)',
+                    color: 'var(--text-color)',
+                    confirmButtonColor: '#d4af37'
+                });
+            });
+        });
+    });
+
+    function editCategory(categoryId) {
+        fetch(`/admin/categories/${categoryId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch category details');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success && data.category) {
+                    document.getElementById('categoryId').value = data.category._id;
+                    document.getElementById('editName').value = data.category.name;
+                    document.getElementById('editDescription').value = data.category.description;
+
+                    const editModal = document.getElementById('editModal');
+                    editModal.classList.remove('hidden');
+                    editModal.classList.add('flex');
+                } else {
+                    throw new Error(data.message || 'Failed to load category details');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: error.message,
+                    background: 'var(--primary-bg)',
+                    color: 'var(--text-color)',
+                    confirmButtonColor: '#d4af37'
+                });
+            });
+    }
+
+    function closeEditModal() {
+        const editModal = document.getElementById('editModal');
+        editModal.classList.add('hidden');
+        editModal.classList.remove('flex');
+        document.getElementById('editForm').reset();
+    }
+
+    function toggleCategory(categoryId) {
+        const toggleButton = document.querySelector(`#toggle-${categoryId}`);
+        const currentStatus = document.querySelector(`#status-${categoryId}`).textContent.trim();
+        const newStatus = currentStatus === 'Active' ? 'deactivate' : 'activate';
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: `Do you want to ${newStatus} this category?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d4af37',
+            cancelButtonColor: '#dc2626',
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'No',
+            background: 'var(--primary-bg)',
+            color: 'var(--text-color)'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/admin/toggleCategoryStatus/${categoryId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: data.message,
+                            background: 'var(--primary-bg)',
+                            color: 'var(--text-color)',
+                            confirmButtonColor: '#d4af37',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        throw new Error(data.message || 'Failed to toggle category status');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: error.message || 'An error occurred while toggling the category status',
+                        background: 'var(--primary-bg)',
+                        color: 'var(--text-color)',
+                        confirmButtonColor: '#d4af37'
+                    });
+                });
+            }
+        });
+    }
+</script>
+
+<%- include('./partials/adminFooter.ejs') %>

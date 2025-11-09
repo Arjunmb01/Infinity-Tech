@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= locals.title || 'InfinityTech' %></title>
+    <meta name="description" content="<%= locals.description || 'Your Ultimate Laptop Destination' %>"/>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="manifest" href="/manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" />
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f9fafb; color: #1f2937; margin: 0; padding: 0; overflow-x: hidden; }
+        .site-header { position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: linear-gradient(135deg, #6b7280, #1f2937); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+        .nav-link { position: relative; transition: all 0.3s ease; }
+        .nav-link:hover::after { content: ''; position: absolute; width: 100%; height: 2px; bottom: -6px; left: 0; background: #facc15; transform: scaleX(1); transform-origin: bottom left; transition: transform 0.3s ease; }
+        .nav-link::after { transform: scaleX(0); }
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+    <header class="site-header">
+        <nav x-data="navigationMenu()" class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="text-white text-2xl font-bold tracking-tight">InfinityTech</div>
+            <div class="hidden md:flex space-x-8">
+                <a href="/" class="nav-link text-white font-semibold">Home</a>
+                <a href="/shop" class="nav-link text-white font-semibold">Shop</a>
+                <a href="/about" class="nav-link text-white font-semibold">About</a>
+                <a href="/contact" class="nav-link text-white font-semibold">Contact</a>
+            </div>
+            <div class="flex items-center space-x-6">
+                <a href="/cart" class="text-white hover:text-gray-200 relative">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <span id="cart-count" class="absolute -top-2 -right-2 bg-yellow-400 text-gray-900 text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold hidden">0</span>
+                </a>
+                <a href="/wishlist" class="text-white hover:text-gray-200 relative">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                    <span id="wishlist-count" class="absolute -top-2 -right-2 bg-yellow-400 text-gray-900 text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold hidden">0</span>
+                </a>
+                <% if (locals.user) { %>
+                    <div x-data="{ open: false }" class="relative" @click.outside="open = false">
+                        <button @click="open = !open" class="flex items-center px-4 py-2 bg-white text-gray-800 rounded-full shadow-md hover:bg-gray-100 transition-all">
+                            <span class="text-sm font-semibold"><%= user.name || 'User' %></span>
+                            <svg class="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <div x-cloak x-show="open" x-transition class="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-2xl overflow-hidden">
+                            <a href="/profile" class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+                            <a href="/orders" class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100">Orders</a>
+                            <a href="/cart" class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100">Cart</a>
+                            <a href="/wishlist" class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100">Wishlist</a>
+                            <a href="/logout" class="block px-5 py-3 text-sm text-red-600 hover:bg-gray-100">Logout</a>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <a href="/login" class="text-white px-5 py-2 bg-indigo-600 rounded-full hover:bg-indigo-700 transition-all font-semibold">Login</a>
+                <% } %>
+                <button @click="toggleMobileMenu" class="md:hidden text-white focus:outline-none">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+            </div>
+        </nav>
+        <div x-show="mobileMenuOpen" x-transition class="md:hidden absolute top-full left-0 right-0 bg-white shadow-xl rounded-b-xl">
+            <div class="px-4 py-4 space-y-2">
+                <a href="/" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg font-medium">Home</a>
+                <a href="/shop" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg font-medium">Shop</a>
+                <a href="/about" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg font-medium">About</a>
+                <a href="/contact" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg font-medium">Contact</a>
+                <a href="/cart" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg font-medium">Cart</a>
+                <a href="/wishlist" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg font-medium">Wishlist</a>
+            </div>
+        </div>
+        <script>
+            document.addEventListener('alpine:init', () => {
+                Alpine.data('navigationMenu', () => ({
+                    mobileMenuOpen: false,
+                    toggleMobileMenu() {
+                        this.mobileMenuOpen = !this.mobileMenuOpen;
+                    },
+                    async updateCounts() {
+                        try {
+                            // Fetch cart count
+                            const cartResponse = await fetch('/api/cart/count', { 
+                                credentials: 'include',
+                                headers: { 'Accept': 'application/json' }
+                            });
+                            console.log('Cart API Response:', cartResponse.status, cartResponse.statusText);
+                            if (!cartResponse.ok) throw new Error(`Cart API failed with status: ${cartResponse.status}`);
+                            const cartData = await cartResponse.json();
+                            console.log('Cart Data:', cartData);
+                            const cartCount = cartData.success && typeof cartData.count === 'number' ? cartData.count : 0;
+                            const cartCounter = document.getElementById('cart-count');
+                            if (cartCounter) {
+                                cartCounter.textContent = cartCount;
+                                cartCount > 0 ? cartCounter.classList.remove('hidden') : cartCounter.classList.add('hidden');
+                            }
+
+                            // Fetch wishlist count
+                            const wishlistResponse = await fetch('/api/wishlist/count', { 
+                                credentials: 'include',
+                                headers: { 'Accept': 'application/json' }
+                            });
+                            console.log('Wishlist API Response:', wishlistResponse.status, wishlistResponse.statusText);
+                            if (!wishlistResponse.ok) throw new Error(`Wishlist API failed with status: ${wishlistResponse.status}`);
+                            const wishlistData = await wishlistResponse.json();
+                            console.log('Wishlist Data:', wishlistData);
+                            const wishlistCount = wishlistData.success && typeof wishlistData.count === 'number' ? wishlistData.count : 0;
+                            const wishlistCounter = document.getElementById('wishlist-count');
+                            if (wishlistCounter) {
+                                wishlistCounter.textContent = wishlistCount;
+                                wishlistCount > 0 ? wishlistCounter.classList.remove('hidden') : wishlistCounter.classList.add('hidden');
+                            }
+                        } catch (error) {
+                            console.error('Error updating counts:', error.message);
+                            const cartCounter = document.getElementById('cart-count');
+                            const wishlistCounter = document.getElementById('wishlist-count');
+                            if (cartCounter) {
+                                cartCounter.textContent = '0';
+                                cartCounter.classList.add('hidden');
+                            }
+                            if (wishlistCounter) {
+                                wishlistCounter.textContent = '0';
+                                wishlistCounter.classList.add('hidden');
+                            }
+                        }
+                    },
+                    init() {
+                        this.updateCounts();
+                    }
+                }));
+            });
+
+            window.updateHeaderCounts = function() {
+                const nav = Alpine.$data(document.querySelector('nav'));
+                if (nav) nav.updateCounts();
+            };
+
+            document.addEventListener('DOMContentLoaded', () => window.updateHeaderCounts());
+            document.addEventListener('cartUpdated', () => window.updateHeaderCounts());
+            document.addEventListener('wishlistUpdated', () => window.updateHeaderCounts());
+        </script>
+    </header>
+    <main class="flex-grow">
