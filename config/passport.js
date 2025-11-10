@@ -3,16 +3,17 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require('../models/userSchema');
 require('dotenv').config();
 
-const callbackURL =
-  process.env.GOOGLE_CALLBACK_URL ||
-  'http://localhost:3000/auth/google/callback';
+
 
 passport.use(
     new GoogleStrategy(
         {
             clientID: process.env.GOOGLE_CLIENT_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            callbackURL
+            callbackURL:
+                process.env.NODE_ENV === 'production'
+                    ? 'https://infinity-tech-gilt.vercel.app/auth/google/callback'
+                    : 'http://localhost:3000/auth/google/callback'
         },
         async (accessToken, refreshToken, profile, done) => {
             try {
@@ -28,11 +29,11 @@ passport.use(
                 let user = await User.findOne({ email });
 
                 if (user) {
-                    // Check blocked status first
+
                     if (user.isBlocked) {
                         console.log('Blocked user attempted login:', email);
-                        return done(null, false, { 
-                            message: 'Your account has been blocked. Please contact support.' 
+                        return done(null, false, {
+                            message: 'Your account has been blocked. Please contact support.'
                         });
                     }
 
@@ -81,8 +82,8 @@ passport.deserializeUser(async (id, done) => {
         // Additional check for blocked status during deserialization
         if (user.isBlocked) {
             console.log('Blocked user detected during deserialize:', user.email);
-            return done(null, false, { 
-                message: 'Your account has been blocked. Please contact support.' 
+            return done(null, false, {
+                message: 'Your account has been blocked. Please contact support.'
             });
         }
         return done(null, user);
