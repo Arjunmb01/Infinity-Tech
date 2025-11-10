@@ -1,7 +1,8 @@
+// app.js
 const express = require('express');
 const path = require('path');
 const session = require('express-session');
-require('dotenv').config(); // Load env variables at the top
+require('dotenv').config(); // Load env variables early
 const morgan = require('morgan');
 const connectDb = require('./config/db');
 const userRouter = require('./routes/userRouter');
@@ -17,7 +18,7 @@ connectDb();
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Morgan logging
+// Logger
 app.use(morgan('dev'));
 
 // View engine setup
@@ -46,26 +47,32 @@ app.use((req, res, next) => {
   next();
 });
 
-// Session config
+// ✅ Trust Vercel proxy for secure cookies
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
+// ✅ Session configuration (works on local + Vercel)
 app.use(
   session({
     secret: process.env.SESSION_SECRET || 'default-secret',
     resave: false,
     saveUninitialized: false,
     cookie: {
-      maxAge: 1000 * 60 * 60 * 24, // 1 day
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      maxAge: 1000 * 60 * 60 * 24, // 1 day
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      secure: process.env.NODE_ENV === 'production', // only on HTTPS
     },
   })
 );
 
-// Passport + Flash
+// ✅ Passport + Flash
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 
-// Global variables for templates
+// ✅ Global variables for all EJS templates
 app.use((req, res, next) => {
   res.locals.user = req.session.user || req.user || null;
   res.locals.success_msg = req.flash('success_msg');
@@ -73,6 +80,14 @@ app.use((req, res, next) => {
   res.locals.success = req.flash('success');
   res.locals.error = req.flash('error');
   next();
+});
+
+// ✅ Optional route for testing session login state
+app.get('/api/auth/me', (req, res) => {
+  res.json({
+    loggedIn: !!req.session.user || !!req.user,
+    user: req.session.user || req.user || null,
+  });
 });
 
 // Multer error handler
@@ -95,9 +110,9 @@ app.use((req, res) => {
 // Global error handler
 app.use(errorHandler);
 
-// Start Server
+// Start server
 app.listen(port, () => {
-  console.log(`🚀 Server is running on http://localhost:${port}`);
+  console.log(`🚀 Server running on http://localhost:${port}`);
 });
 
 module.exports = app;

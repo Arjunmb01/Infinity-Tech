@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 const Product = require('../../models/productSchema');
-const mongoose = require('mongoose');
+
 
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -401,38 +401,40 @@ const loadContactPage = async (req, res) => {
 };
 
 const handleGoogleCallback = async (req, res) => {
-    try {
-        if (!req.user) {
-            req.flash('error', 'Authentication failed');
-            return res.redirect('/login');
-        }
-
-        const user = await User.findById(req.user._id);
-        if (!user || user.isBlocked) {
-            req.logout((err) => {
-                if (err) console.error('Logout error:', err);
-                req.flash('error', 'Your account has been blocked');
-                res.redirect('/login');
-            });
-            return;
-        }
-
-        req.session.user = {
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            isVerified: user.isVerified
-        };
-
-        req.flash('success', `Welcome back, ${user.name}!`);
-        return res.redirect('/');
-
-    } catch (error) {
-        console.error('Google callback error:', error);
-        req.flash('error', 'Authentication failed');
-        return res.redirect('/login');
+  try {
+    if (!req.user) {
+      req.flash('error', 'Authentication failed. Please try again.');
+      return res.redirect('/login');
     }
+
+    const user = await User.findById(req.user._id);
+    if (!user || user.isBlocked) {
+      req.logout(err => {
+        if (err) console.error('Logout error:', err);
+        req.flash('error', 'Your account has been blocked');
+        return res.redirect('/login');
+      });
+      return;
+    }
+
+    // ✅ Save user session
+    req.session.user = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      isVerified: user.isVerified,
+    };
+
+    console.log('✅ Google login success:', user.email);
+    req.flash('success', `Welcome back, ${user.name}!`);
+    return res.redirect('/'); // Redirect to homepage
+  } catch (error) {
+    console.error('Google callback error:', error);
+    req.flash('error', 'Authentication failed. Please try again.');
+    return res.redirect('/login');
+  }
 };
+
 
 const loadPassword = async (req, res) => {
     try {
